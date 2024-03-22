@@ -5,15 +5,18 @@ function GuidedRubricXBlock(runtime, element) {
     let chatLogs = document.getElementById('chat-logs');
     let sendBtn = document.getElementById('send-btn');
     let errorMsg = document.getElementById('error-msg');
+
+    // loader
     let loadingMsg = document.createElement('div');
     var overlay = document.createElement("div");
+    var loader = document.createElement("div");
     overlay.setAttribute("class", "overlay");
     overlay.setAttribute("id", "overlay-loader");
-    var loader = document.createElement("div");
     loader.setAttribute("class", "lds-dual-ring");
     overlay.appendChild(loader);
     loadingMsg.classList.add("loading");
     loadingMsg.appendChild(loader);
+
     // Handlers
     var handlerUrl = runtime.handlerUrl(element, 'send_message');
 
@@ -27,11 +30,13 @@ function GuidedRubricXBlock(runtime, element) {
         }).done(function(response) {
             if (response.result === 'success') {
                 chatLogs.removeChild(loadingMsg);
-                console.log(response.response);
                 type_message(response.response);
             } else {
                 alert("You've reached the end of the exercise. Hope you learned something!");
                 chatLogs.removeChild(loadingMsg);
+                // allQuestions = document.querySelectorAll('.my-msg');
+                // lastQuestion = allQuestions[allQuestions.length - 1];
+                // lastQuestion.parentNode.removeChild(lastQuestion);
                 document.querySelector('.chat-input').style.display = 'block';
             }
         }).fail(function(error) {
@@ -48,10 +53,10 @@ function GuidedRubricXBlock(runtime, element) {
         errorMsg.textContent = "";
         let newMsg = document.createElement('div');
         let linebreak = document.createElement('br');
-        newMsg.textContent = chatMsg.value;
+        newMsg.textContent = "Your Answer: " + chatMsg.value;
         newMsg.classList.add("my-msg");
         chatLogs.appendChild(newMsg);
-        chatLogs.appendChild(linebreak);
+        // chatLogs.appendChild(linebreak);
         chatLogs.appendChild(loadingMsg);
 
         chatMsg.value = "";
@@ -67,9 +72,16 @@ function GuidedRubricXBlock(runtime, element) {
         chatLogs.appendChild(aiMsg);
         let typing = setInterval(function() {
             if (i < message.length) {
-                aiMsg.textContent = message[0];
-                question.textContent = "testing ";
-                chatLogs.appendChild(question);
+                aiMsg.textContent = "AI Feedback: " + message[0];
+                if (message[2]){
+                    question.textContent = message[2];
+                    chatLogs.appendChild(question);
+                }
+                // if (message[2] === null) {
+                //     allQuestions = document.querySelectorAll('.my-msg');
+                //     lastQuestion = allQuestions[allQuestions.length - 1];
+                //     lastQuestion.parentNode.removeChild(lastQuestion);
+                // }
                 document.querySelector('.chat-input').style.display = 'block';
                 i++;
             } else {
@@ -83,4 +95,3 @@ function GuidedRubricXBlock(runtime, element) {
     });
 
 }
-

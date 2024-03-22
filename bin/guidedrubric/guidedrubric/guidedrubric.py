@@ -215,7 +215,7 @@ class AssistantManager:
                     self.process_message()
                     break
                 elif run_status.status == "requires_action":
-                    print("FUNCTION CALLING NOW...")
+                    # print("FUNCTION CALLING NOW...")
                     self.call_required_functions(
                         required_actions=run_status.required_action.submit_tool_outputs.model_dump()
                     )
@@ -266,7 +266,7 @@ def handle_assistant_grading(index, manager):
     #save the score summary
     session_state[f"phase_{index}_rubric"] = summary
 
-    print(f"RUBRIC SCORE: {summary}")
+    # print(f"RUBRIC SCORE: {summary}")
 
     #Extract the numeric score from the json
     score = extract_score(str(summary))
@@ -277,10 +277,11 @@ def handle_assistant_grading(index, manager):
     if check_score(score, index):
         session_state[f"phase_{index}_state"] = "pass"
         session_state['current_question_index'] += 1
-        print(session_state['current_question_index'])
+        # print(session_state['current_question_index'])
     else:
         session_state['current_question_index'] += 1
         session_state[f"phase_{index}_state"] = "fail"
+    return summary
 
 def handle_assistant_interaction(index, manager, user_input):
     #hide the buttons
@@ -297,18 +298,17 @@ def handle_assistant_interaction(index, manager, user_input):
     #save the AI Feedback
     session_state[f"phase_{index}_summary"] = summary
     #write the AI feedback
-    print(summary)
     return summary
 
 def main(user_input):
 
-    print('Guided Critical Analysis')
-    print('In this guided article review, we\'ll both read the same journal article. Then, you\'ll be guided through an analysis of the paper. Let\'s begin by reading the paper!')
+    # print('Guided Critical Analysis')
+    # print('In this guided article review, we\'ll both read the same journal article. Then, you\'ll be guided through an analysis of the paper. Let\'s begin by reading the paper!')
 
-    print("View PDF", "http://up.csail.mit.edu/other-pubs/las2014-pguo-engagement.pdf")
+    # print("View PDF", "http://up.csail.mit.edu/other-pubs/las2014-pguo-engagement.pdf")
 
-    print("""
-        This is a **DEMO**, so sample answers are **pre-filled**""")
+    # print("""
+    #     This is a **DEMO**, so sample answers are **pre-filled**""")
 
     #Create the assistant one time. Only if the Assistant ID is not found, create a new one. 
     manager = AssistantManager()
@@ -327,13 +327,6 @@ Generally, you will be asked to provided feedback on the students answer based o
     if  session_state['current_question_index'] <= len(phases) - 1:
         i = session_state['current_question_index']
         index = i
-
-        # if i == 0:
-        #     user_input = "testuser"
-        # else:
-        #     # if i > len(phases) - 1:
-        #     #     break
-        #     user_input = phases[index]["sample_answer"]
 
         if f"phase_{index}_summary" in session_state:
             stored_summary = session_state[f"phase_{index}_summary"]
@@ -360,8 +353,11 @@ Generally, you will be asked to provided feedback on the students answer based o
             if submit_button:
                 hand_intr = handle_assistant_interaction(index, manager, user_input)
                 hand_gra = handle_assistant_grading(index, manager)
-        # question = phases[session_state['current_question_index']]['question'] if 'question' in phases[session_state['current_question_index']] and phases[session_state['current_question_index']]['question'] else None
-        return hand_intr, hand_gra, 
+        try:
+            question = phases[session_state['current_question_index']]['question']
+        except:
+            question = None
+        return hand_intr, hand_gra, question
 
 class GuidedRubricXBlock(XBlock):
     """
@@ -402,7 +398,6 @@ class GuidedRubricXBlock(XBlock):
         """Send message to OpenAI, and return the response"""
         user_input = data['message']
         res = main(user_input)
-        print(res)
         return {'result': 'success' if res else 'failed', 'response': res}
 
     # TO-DO: change this to create the scenarios you'd like to see in the
