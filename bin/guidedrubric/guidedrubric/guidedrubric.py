@@ -322,37 +322,35 @@ Generally, you will be asked to provided feedback on the students answer based o
     tools=""
     )
     manager.create_thread()
-  
-    i=0
+    
+    # i = 0
     if  session_state['current_question_index'] <= len(phases) - 1:
-        i = session_state['current_question_index']
-        index = i
+        index = session_state['current_question_index']
 
-        if f"phase_{index}_summary" in session_state:
-            stored_summary = session_state[f"phase_{index}_summary"]
-            print(stored_summary)
+        # if f"phase_{index}_summary" in session_state:
+        #     stored_summary = session_state[f"phase_{index}_summary"]
+            # print(stored_summary)
 
         #if we've reached the final question and outputted, then end. 
-        if session_state['current_question_index'] == len(phases) and i == session_state['current_question_index'] - 1:
+        # if session_state['current_question_index'] == len(phases) and i == session_state['current_question_index'] - 1:
             
-            print("You've reached the end of the exercise. Hope you learned something!")
-            return
+        #     print("You've reached the end of the exercise. Hope you learned something!")
+        #     return
         
-        if i <= len(phases)-1:
-            if i == session_state['current_question_index']:
-                submit_button = True
-        else:
-            print("You've reached the end!")
+        # if i <= len(phases)-1:
+        #     if i == session_state['current_question_index']:
+        #         submit_button = True
+        # else:
+        #     print("You've reached the end!")
 
-        i+=1
-
-        if session_state['current_question_index'] == len(phases):
-            return
+        # if session_state['current_question_index'] == len(phases):
+        #     return
+        # i += 1
 
         if session_state['current_question_index'] <= len(phases):
-            if submit_button:
-                hand_intr = handle_assistant_interaction(index, manager, user_input)
-                hand_gra = handle_assistant_grading(index, manager)
+            # if submit_button:
+            hand_intr = handle_assistant_interaction(index, manager, user_input)
+            hand_gra = handle_assistant_grading(index, manager)
         try:
             question = phases[session_state['current_question_index']]['question']
         except:
@@ -368,10 +366,6 @@ class GuidedRubricXBlock(XBlock):
     # self.<fieldname>.
 
     # TO-DO: delete count, and define your own fields.
-    count = Integer(
-        default=0, scope=Scope.user_state,
-        help="A simple counter, to show something happening",
-    )
 
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
