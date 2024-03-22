@@ -1,0 +1,9 @@
+/* CSS for GuidedRubricXBlock */
+
+.guidedrubric_block .count {
+    font-weight: bold;
+}
+
+.guidedrubric_block p {
+    cursor: pointer;
+}
