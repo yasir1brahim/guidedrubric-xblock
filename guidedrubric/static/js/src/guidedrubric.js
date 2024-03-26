@@ -4,6 +4,7 @@ function GuidedRubricXBlock(runtime, element) {
     let chatMsg = document.getElementById('chat-msg');
     let chatLogs = document.getElementById('chat-logs');
     let sendBtn = document.getElementById('send-btn');
+    let skipBtn = document.getElementById('skip-btn');
     let errorMsg = document.getElementById('error-msg');
 
     // loader
@@ -34,16 +35,12 @@ function GuidedRubricXBlock(runtime, element) {
             } else {
                 alert("You've reached the end of the exercise. Hope you learned something!");
                 chatLogs.removeChild(loadingMsg);
-                // allQuestions = document.querySelectorAll('.my-msg');
-                // lastQuestion = allQuestions[allQuestions.length - 1];
-                // lastQuestion.parentNode.removeChild(lastQuestion);
                 document.querySelector('.chat-input').style.display = 'block';
             }
         }).fail(function(error) {
             console.log("An error occurred: ", error);
         });
     };
-
     sendBtn.addEventListener('click', function() {
         if (!chatMsg.value.trim()) {
             errorMsg.textContent = "You should enter prompt";
@@ -52,44 +49,61 @@ function GuidedRubricXBlock(runtime, element) {
         document.querySelector('.chat-input').style.display = 'none';
         errorMsg.textContent = "";
         let newMsg = document.createElement('div');
-        let linebreak = document.createElement('br');
         newMsg.textContent = "Your Answer: " + chatMsg.value;
         newMsg.classList.add("my-msg");
         chatLogs.appendChild(newMsg);
-        // chatLogs.appendChild(linebreak);
         chatLogs.appendChild(loadingMsg);
 
         chatMsg.value = "";
         // Call the Python function with the message as input
         send_message(newMsg.textContent);
     });
-    function type_message(message) {
-        let i = 0;
+    skipBtn.addEventListener('click', function() {
+        document.querySelector('.chat-input').style.display = 'none';
+        errorMsg.textContent = "";
+        let newMsg = document.createElement('div');
+        let status = document.createElement('div');
+        newMsg.textContent = "Your Answer: " + chatMsg.value;
+        status.textContent = "Status: Skip";
+        newMsg.classList.add("my-msg");
+        chatLogs.appendChild(newMsg);
+        chatLogs.appendChild(status)
+        chatLogs.appendChild(loadingMsg);
+        chatMsg.value = "";
+        send_message("skip");
+    });
+
+    function type_message(data) {
+        chunks = data[3]
         let aiMsg = document.createElement('div');
         let question = document.createElement('p');
-        aiMsg.classList.add("ai-msg");
         question.classList.add("questions");
+        aiMsg.classList.add("ai-msg");
         chatLogs.appendChild(aiMsg);
-        let typing = setInterval(function() {
-            if (i < message.length) {
-                aiMsg.textContent = "AI Feedback: " + message[0];
-                if (message[2]){
-                    question.textContent = message[2];
+    
+        // This function will be called recursively with a delay to simulate streaming
+        function displayNextChunk(index) {
+            if (index < chunks.length) {
+                aiMsg.textContent += chunks[index];
+                
+                setTimeout(() => displayNextChunk(index + 1), 100);
+            } else {
+                if (data[2]){
+                    question.textContent = data[2];
                     chatLogs.appendChild(question);
                 }
-                // if (message[2] === null) {
-                //     allQuestions = document.querySelectorAll('.my-msg');
-                //     lastQuestion = allQuestions[allQuestions.length - 1];
-                //     lastQuestion.parentNode.removeChild(lastQuestion);
-                // }
+                if (data[2] === null) {
+                    allQuestions = document.querySelectorAll('.my-msg');
+                    lastQuestion = allQuestions[allQuestions.length - 1];
+                    lastQuestion.parentNode.removeChild(lastQuestion);
+                }
                 document.querySelector('.chat-input').style.display = 'block';
-                i++;
-            } else {
-                clearInterval(typing);
             }
-        }, 10);
+        }
+    
+        // Start displaying chunks from the first one
+        displayNextChunk(0);
     }
-
     $(function ($) {
         /* Here's where you'd do things on page load. */
     });

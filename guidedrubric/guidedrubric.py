@@ -3,8 +3,9 @@
 import pkg_resources
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
-from xblock.fields import Integer, Scope
 import openai
+from typing_extensions import override
+from openai import AssistantEventHandler
 from dotenv import load_dotenv
 import time
 import re
@@ -15,6 +16,37 @@ load_dotenv()
 client = openai.OpenAI()
 model = "gpt-4-turbo-preview"
 
+ai_messages = []
+# First, we create a EventHandler class to define
+# how we want to handle the events in the response stream.
+class EventHandler(AssistantEventHandler):    
+  @override
+  def on_text_created(self, text) -> None:
+    pass
+    # print(f"\nassistant > ", end="", flush=True)
+      
+  @override
+  def on_text_delta(self, delta, snapshot):
+    if delta.value:
+        ai_messages.append(delta.value)
+      
+  def on_tool_call_created(self, tool_call):
+    pass
+    # print(f"\nassistant > {tool_call.type}\n", flush=True)
+  
+  def on_tool_call_delta(self, delta, snapshot):
+    if delta.type == 'code_interpreter':
+      if delta.code_interpreter.input:
+        print(delta.code_interpreter.input, end="", flush=True)
+      if delta.code_interpreter.outputs:
+        print(f"\n\noutput >", flush=True)
+        for output in delta.code_interpreter.outputs:
+          if output.type == "logs":
+            print(f"\n{output.logs}", flush=True)
+ 
+# Then, we use the `create_and_stream` SDK helper 
+# with the `EventHandler` class to create the Run 
+# and stream the response.
 
 phases = [
     {
@@ -156,11 +188,16 @@ class AssistantManager:
 
     def run_assistant(self, instructions):
         if self.thread and self.assistant:
-            self.run = self.client.beta.threads.runs.create(
-                thread_id=self.thread.id,
-                assistant_id=self.assistant.id,
-                instructions=instructions,
-            )
+            try:
+                with self.client.beta.threads.runs.create_and_stream(
+                    thread_id=self.thread.id,
+                    assistant_id=self.assistant.id,
+                    instructions=instructions,
+                    event_handler=EventHandler(),
+                ) as stream:
+                    stream.until_done()
+            except Exception as e:
+                print(f"Streaming error: {e}")
 
     def process_message(self):
         if self.thread:
@@ -203,22 +240,24 @@ class AssistantManager:
         return self.summary
 
     def wait_for_completion(self):
-        if self.thread and self.run:
-            while True:
-                time.sleep(5)
-                run_status = self.client.beta.threads.runs.retrieve(
-                    thread_id=self.thread.id, run_id=self.run.id
-                )
-                # print(f"RUN STATUS:: {run_status.model_dump_json(indent=4)}")
+        pass
+        # if self.thread and self.run:
+        #     while True:
+        #         time.sleep(5)
+        #         run_status = self.client.beta.threads.runs.retrieve(
+        #             thread_id=self.thread.id, run_id=self.run.id
+        #         )
+        #         # print(f"RUN STATUS:: {run_status.model_dump_json(indent=4)}")
 
-                if run_status.status == "completed":
-                    self.process_message()
-                    break
-                elif run_status.status == "requires_action":
-                    # print("FUNCTION CALLING NOW...")
-                    self.call_required_functions(
-                        required_actions=run_status.required_action.submit_tool_outputs.model_dump()
-                    )
+        #         if run_status.status == "completed":
+        #             self.process_message()
+        #             break
+        #         elif run_status.status == "requires_action":
+        #             # print("FUNCTION CALLING NOW...")
+        #             self.call_required_functions(
+        #                 required_actions=run_status.required_action.submit_tool_outputs.model_dump()
+        #             )
+        # print("ssssssssssssssssssssssssssssss")
 
 
 def extract_score(text):
@@ -289,8 +328,7 @@ def handle_assistant_interaction(index, manager, user_input):
         role="user", content=user_input
     )
     instructions = build_instructions(index)
-    manager.run_assistant(instructions)
-
+    x = manager.run_assistant(instructions)
     manager.wait_for_completion()
 
     #get the AI Feedback
@@ -298,7 +336,7 @@ def handle_assistant_interaction(index, manager, user_input):
     #save the AI Feedback
     session_state[f"phase_{index}_summary"] = summary
     #write the AI feedback
-    return summary
+    return x
 
 def main(user_input):
 
@@ -323,39 +361,23 @@ Generally, you will be asked to provided feedback on the students answer based o
     )
     manager.create_thread()
     
-    # i = 0
     if  session_state['current_question_index'] <= len(phases) - 1:
         index = session_state['current_question_index']
-
-        # if f"phase_{index}_summary" in session_state:
-        #     stored_summary = session_state[f"phase_{index}_summary"]
-            # print(stored_summary)
-
-        #if we've reached the final question and outputted, then end. 
-        # if session_state['current_question_index'] == len(phases) and i == session_state['current_question_index'] - 1:
-            
-        #     print("You've reached the end of the exercise. Hope you learned something!")
-        #     return
-        
-        # if i <= len(phases)-1:
-        #     if i == session_state['current_question_index']:
-        #         submit_button = True
-        # else:
-        #     print("You've reached the end!")
-
-        # if session_state['current_question_index'] == len(phases):
-        #     return
-        # i += 1
-
-        if session_state['current_question_index'] <= len(phases):
-            # if submit_button:
+        if user_input == "skip":
+            hand_intr = None
+            hand_gra = None
+        elif session_state['current_question_index'] <= len(phases):
             hand_intr = handle_assistant_interaction(index, manager, user_input)
-            hand_gra = handle_assistant_grading(index, manager)
+            # hand_gra = handle_assistant_grading(index, manager)
+            hand_gra = None
         try:
+            session_state['current_question_index'] += 1
             question = phases[session_state['current_question_index']]['question']
         except:
             question = None
-        return hand_intr, hand_gra, question
+        messages_to_send = ai_messages.copy()
+        ai_messages.clear()
+        return hand_intr, hand_gra, question, messages_to_send
 
 class GuidedRubricXBlock(XBlock):
     """
@@ -373,6 +395,14 @@ class GuidedRubricXBlock(XBlock):
         return data.decode("utf8")
 
     # TO-DO: change this view to display your data your own way.
+    def studio_view(self, context=None):
+        html = self.resource_string("static/html/guidedrubric.html")
+        frag = Fragment(html.format(self=self))
+        frag.add_css(self.resource_string("static/css/guidedrubric.css"))
+        frag.add_javascript(self.resource_string("static/js/src/guidedrubric.js"))
+        frag.initialize_js('GuidedRubricXBlock')
+        return frag
+
     def student_view(self, context=None):
         """
         The primary view of the GuidedRubricXBlock, shown to students
