@@ -17,9 +17,14 @@ client = openai.OpenAI()
 model = "gpt-4-turbo-preview"
 
 ai_messages = []
+ai_grade = []
 # First, we create a EventHandler class to define
 # how we want to handle the events in the response stream.
+
 class EventHandler(AssistantEventHandler):    
+  def __init__(self, grade=False):
+        super().__init__()
+        self.grade = grade
   @override
   def on_text_created(self, text) -> None:
     pass
@@ -28,7 +33,10 @@ class EventHandler(AssistantEventHandler):
   @override
   def on_text_delta(self, delta, snapshot):
     if delta.value:
-        ai_messages.append(delta.value)
+        if self.grade:
+            ai_grade.append(delta.value)
+        else:
+            ai_messages.append(delta.value)
       
   def on_tool_call_created(self, tool_call):
     pass
@@ -186,16 +194,18 @@ class AssistantManager:
                 thread_id=self.thread.id, role=role, content=content
             )
 
-    def run_assistant(self, instructions):
+    def run_assistant(self, instructions, grade):
         if self.thread and self.assistant:
             try:
                 with self.client.beta.threads.runs.create_and_stream(
                     thread_id=self.thread.id,
                     assistant_id=self.assistant.id,
                     instructions=instructions,
-                    event_handler=EventHandler(),
+                    event_handler=EventHandler(grade=grade),
                 ) as stream:
                     stream.until_done()
+                    self.run = stream._AssistantEventHandler__current_run
+                    self.process_message()
             except Exception as e:
                 print(f"Streaming error: {e}")
 
@@ -240,24 +250,20 @@ class AssistantManager:
         return self.summary
 
     def wait_for_completion(self):
-        pass
-        # if self.thread and self.run:
-        #     while True:
-        #         time.sleep(5)
-        #         run_status = self.client.beta.threads.runs.retrieve(
-        #             thread_id=self.thread.id, run_id=self.run.id
-        #         )
-        #         # print(f"RUN STATUS:: {run_status.model_dump_json(indent=4)}")
+        if self.thread and self.run:
+            while True:
+                time.sleep(5)
+                run_status = self.client.beta.threads.runs.retrieve(
+                    thread_id=self.thread.id, run_id=self.run.id
+                )
 
-        #         if run_status.status == "completed":
-        #             self.process_message()
-        #             break
-        #         elif run_status.status == "requires_action":
-        #             # print("FUNCTION CALLING NOW...")
-        #             self.call_required_functions(
-        #                 required_actions=run_status.required_action.submit_tool_outputs.model_dump()
-        #             )
-        # print("ssssssssssssssssssssssssssssss")
+                if run_status.status == "completed":
+                    self.process_message()
+                    break
+                elif run_status.status == "requires_action":
+                    self.call_required_functions(
+                        required_actions=run_status.required_action.submit_tool_outputs.model_dump()
+                    )
 
 
 def extract_score(text):
@@ -282,7 +288,7 @@ def check_score(score, question_num):
 
 def handle_skip(index):
     session_state[f"phase_{index}_state"] = "skip"
-    session_state.current_question_index += 1
+    session_state['current_question_index'] += 1
 
 def build_instructions(index, graded_step=False):
     if graded_step:
@@ -297,56 +303,35 @@ def build_instructions(index, graded_step=False):
 def handle_assistant_grading(index, manager):
 
     instructions = build_instructions(index, True)
-    manager.run_assistant(instructions)
-    manager.wait_for_completion()
+    manager.run_assistant(instructions, True)
 
-    #get the score summary
-    summary = "SCORE: " + manager.get_summary()
-    #save the score summary
+    # manager.wait_for_completion()
+    summary = manager.get_summary()
     session_state[f"phase_{index}_rubric"] = summary
 
-    # print(f"RUBRIC SCORE: {summary}")
-
-    #Extract the numeric score from the json
     score = extract_score(str(summary))
-    #save the numeric score
     session_state[f"phase_{index}_score"] = score
-    
+
     #If the score passes, then increase the index to move to the next step                
     if check_score(score, index):
-        session_state[f"phase_{index}_state"] = "pass"
         session_state['current_question_index'] += 1
-        # print(session_state['current_question_index'])
+        session_state[f"phase_{index}_state"] = "Success"
     else:
-        session_state['current_question_index'] += 1
-        session_state[f"phase_{index}_state"] = "fail"
-    return summary
+        session_state[f"phase_{index}_state"] = "Fail"
+    return session_state[f"phase_{index}_state"]
 
 def handle_assistant_interaction(index, manager, user_input):
-    #hide the buttons
     manager.add_message_to_thread(
         role="user", content=user_input
     )
     instructions = build_instructions(index)
-    x = manager.run_assistant(instructions)
-    manager.wait_for_completion()
-
-    #get the AI Feedback
+    manager.run_assistant(instructions, False)
+    # manager.wait_for_completion()
     summary = manager.get_summary()
-    #save the AI Feedback
     session_state[f"phase_{index}_summary"] = summary
-    #write the AI feedback
-    return x
+    return summary
 
 def main(user_input):
-
-    # print('Guided Critical Analysis')
-    # print('In this guided article review, we\'ll both read the same journal article. Then, you\'ll be guided through an analysis of the paper. Let\'s begin by reading the paper!')
-
-    # print("View PDF", "http://up.csail.mit.edu/other-pubs/las2014-pguo-engagement.pdf")
-
-    # print("""
-    #     This is a **DEMO**, so sample answers are **pre-filled**""")
 
     #Create the assistant one time. Only if the Assistant ID is not found, create a new one. 
     manager = AssistantManager()
@@ -364,14 +349,13 @@ Generally, you will be asked to provided feedback on the students answer based o
     if  session_state['current_question_index'] <= len(phases) - 1:
         index = session_state['current_question_index']
         if user_input == "skip":
+            handle_skip(index)
             hand_intr = None
             hand_gra = None
         elif session_state['current_question_index'] <= len(phases):
             hand_intr = handle_assistant_interaction(index, manager, user_input)
-            # hand_gra = handle_assistant_grading(index, manager)
-            hand_gra = None
+            hand_gra = handle_assistant_grading(index, manager)
         try:
-            session_state['current_question_index'] += 1
             question = phases[session_state['current_question_index']]['question']
         except:
             question = None

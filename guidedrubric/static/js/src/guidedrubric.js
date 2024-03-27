@@ -30,6 +30,10 @@ function GuidedRubricXBlock(runtime, element) {
             dataType: "json",
         }).done(function(response) {
             if (response.result === 'success') {
+                if (response.response[1]){
+                    var statusElements = document.getElementsByClassName('status');
+                    statusElements[statusElements.length - 1].textContent = "Status: " + response.response[1];
+                }
                 chatLogs.removeChild(loadingMsg);
                 type_message(response.response);
             } else {
@@ -42,6 +46,7 @@ function GuidedRubricXBlock(runtime, element) {
         });
     };
     sendBtn.addEventListener('click', function() {
+        let status = document.createElement('div');
         if (!chatMsg.value.trim()) {
             errorMsg.textContent = "You should enter prompt";
             return;
@@ -51,18 +56,20 @@ function GuidedRubricXBlock(runtime, element) {
         let newMsg = document.createElement('div');
         newMsg.textContent = "Your Answer: " + chatMsg.value;
         newMsg.classList.add("my-msg");
+        status.classList.add("status");
+        status.textContent = "Status: Pending";
         chatLogs.appendChild(newMsg);
+        chatLogs.appendChild(status)
         chatLogs.appendChild(loadingMsg);
 
         chatMsg.value = "";
-        // Call the Python function with the message as input
         send_message(newMsg.textContent);
     });
     skipBtn.addEventListener('click', function() {
+        var status = document.createElement('div');
         document.querySelector('.chat-input').style.display = 'none';
         errorMsg.textContent = "";
         let newMsg = document.createElement('div');
-        let status = document.createElement('div');
         newMsg.textContent = "Your Answer: " + chatMsg.value;
         status.textContent = "Status: Skip";
         newMsg.classList.add("my-msg");
@@ -84,10 +91,13 @@ function GuidedRubricXBlock(runtime, element) {
         // This function will be called recursively with a delay to simulate streaming
         function displayNextChunk(index) {
             if (index < chunks.length) {
+                // Append the current chunk to the aiMsg element
                 aiMsg.textContent += chunks[index];
                 
-                setTimeout(() => displayNextChunk(index + 1), 100);
+                // Call this function again for the next chunk after a short delay
+                setTimeout(() => displayNextChunk(index + 1), 100); // Adjust delay as needed
             } else {
+                // Once all chunks are displayed, make the input field visible again
                 if (data[2]){
                     question.textContent = data[2];
                     chatLogs.appendChild(question);
