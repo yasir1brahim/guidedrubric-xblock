@@ -45,16 +45,23 @@ grep -r OPENAI_SECRET_KEY "$(tutor config printroot)/env"
 tutor local restart
 
 
-Using the Guided Rubric XBlock
+USING THE GUIDED RUBRIC XBLOCK
+-----------------------------------
+
 1. Access the LMS and CMS containers.
+
 2. Clone the repository into the EDX platform of CMS and LMS.
+
 3. Navigate to the following path: /openedx/edx-platform
+
 4. Install the XBlock using pip:
-pip install -e guidedrubric-xblock
+   pip install -e guidedrubric-xblock
 
 5. Restart the LMS and CMS containers:
-tutor local restart lms cms
+   tutor local restart lms cms
 
 6. Access the Studio and add "guidedrubric" in advance module list of advanced settings of the course.
+
 7. Save the settings and navigate to the course outline.
+
 8. Add a unit and select the "Advanced" tab. You will see "guidedrubric" in the dropdown menu.
