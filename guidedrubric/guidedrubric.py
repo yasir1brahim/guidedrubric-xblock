@@ -13,7 +13,7 @@ import json
 from django.conf import settings
 
 load_dotenv()
-client = openai.OpenAI(settings.FEATURES['OPENAI_SECRET_KEY'])
+client = openai.OpenAI(api_key=settings.FEATURES['OPENAI_SECRET_KEY'])
 model = "gpt-4-turbo-preview"
 
 ai_messages = []
