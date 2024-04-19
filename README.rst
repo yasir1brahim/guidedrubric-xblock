@@ -99,6 +99,8 @@ USING THE GUIDED RUBRIC XBLOCK
    ..  code-block:: bash
     
      pip install -e ai-guided-tutor-xblock-openedx
+     pip install openai==1.14.2
+     pip install python-dotenv==1.0.1
    
 
 5. Restart the Platform:
