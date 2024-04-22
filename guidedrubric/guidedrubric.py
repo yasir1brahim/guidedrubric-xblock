@@ -11,6 +11,11 @@ import time
 import re
 import json
 from django.conf import settings
+from xblock.fields import Scope, String
+from django.template import Context, Template
+from xblock.completable import CompletableXBlockMixin
+
+
 
 load_dotenv()
 client = openai.OpenAI(api_key=settings.FEATURES['OPENAI_SECRET_KEY'])
@@ -20,6 +25,10 @@ ai_messages = []
 ai_grade = []
 # First, we create a EventHandler class to define
 # how we want to handle the events in the response stream.
+
+
+def _(text):
+    return text
 
 class EventHandler(AssistantEventHandler):    
   def __init__(self, grade=False):
@@ -363,7 +372,9 @@ Generally, you will be asked to provided feedback on the students answer based o
         ai_messages.clear()
         return hand_intr, hand_gra, question, messages_to_send
 
-class GuidedRubricXBlock(XBlock):
+@XBlock.wants("settings")
+@XBlock.wants("user")
+class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     """
     TO-DO: document what your XBlock does.
     """
@@ -373,15 +384,37 @@ class GuidedRubricXBlock(XBlock):
 
     # TO-DO: delete count, and define your own fields.
 
+    assistant_name = String(
+        display_name=_("Assistant Name"),
+        help=_("Assistan Name"),
+        default="",
+        scope=Scope.settings,
+    )
+
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
         data = pkg_resources.resource_string(__name__, path)
         return data.decode("utf8")
 
+    def render_template(self, template_path, context):
+        template_str = self.resource_string(template_path)
+        template = Template(template_str)
+        return template.render(Context(context))
+
     # TO-DO: change this view to display your data your own way.
     def studio_view(self, context=None):
-        html = self.resource_string("static/html/guidedrubric.html")
-        frag = Fragment(html.format(self=self))
+        studio_context = {
+            "field_assistant_name": self.fields["assistant_name"],
+            "guided_rubric_xblock": self,
+        }
+        studio_context.update(context or {})
+        template = self.render_template("static/html/studio.html", studio_context)
+        frag = Fragment(template)
+
+
+        # html = self.resource_string("static/html/guidedrubric.html")
+        # html = self.resource_string("static/html/studio.html")
+        # frag = Fragment(html.format(self=self))
         frag.add_css(self.resource_string("static/css/guidedrubric.css"))
         frag.add_javascript(self.resource_string("static/js/src/guidedrubric.js"))
         frag.initialize_js('GuidedRubricXBlock')

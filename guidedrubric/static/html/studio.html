@@ -1,0 +1,48 @@
+<!-- <h1>Guided Critical Analysis</h1>
+<p>In this guided article review, we'll both read the same journal article. Then, you'll be guided through an analysis of the paper. Let's begin by reading the paper!</p>
+<a href="http://up.csail.mit.edu/other-pubs/las2014-pguo-engagement.pdf">View PDF</a>
+<p>This is a **DEMO**</p>
+<div class="chatgpt_wrapper">
+    <div class="chatgpt_block">
+        <div class="chatbox">
+            <div id="chat-logs">
+                <p class="questions">What is your name?</p>
+            </div>
+            <div class="chat-input">
+                <span id="error-msg"></span>
+                <textarea id="chat-msg" placeholder="Enter Prompt ... " rows="5" cols="230"></textarea>
+                <button id="send-btn">Submit</button>
+                <button id="skip-btn">Skip Question</button>
+            </div>
+        </div>
+    </div>
+</div> -->
+
+{% load i18n l10n %}
+
+<div class="wrapper-comp-settings is-active editor-with-buttons" id="settings-tab">
+    <ul class="list-input settings-list">
+
+        <li class="field comp-setting-entry is-set">
+            <div class="wrapper-comp-setting">
+                <label class="label setting-label" for="assistant_name">{% trans field_assistant_name.display_name %}</label>
+                <input class="input setting-input" name="assistant_name" id="assistant_name" value="{{ guided_rubric_xblock.assistant_name }}" type="text" />
+            </div>
+            <span class="tip setting-help">{% trans field_assistant_name.help %}</span>
+        </li>
+
+        
+    </ul>
+
+    <div class="xblock-actions">
+        <ul>
+            <li class="action-item">
+                <a href="#" class="button action-primary save-button">{% trans "Save" %}</a>
+            </li>
+            <li class="action-item">
+                <a href="#" class="button cancel-button">{% trans "Cancel" %}</a>
+            </li>
+        </ul>
+    </div>
+</div>
+
