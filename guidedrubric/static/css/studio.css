@@ -1,0 +1,26 @@
+.guided_rubric_container_add_button {
+  background-color: white;
+  border: 1px solid;
+  border-radius: 4px;
+  text-align: center;
+  color: #009fe6;
+  padding: 10px;
+  margin: 15px 10px;
+}
+.guided_rubric_container_add_button h6:before {
+  font-family: "FontAwesome";
+  display: inline-block;
+  width: auto;
+  height: auto;
+  content: "\f067";
+}
+
+
+.guided_rubric_container_add_button:hover {
+  color: white;
+  background-color: #009fe6;
+  cursor: pointer;
+}
+#settings-tab .xblock-actions {
+  position: unset;
+}

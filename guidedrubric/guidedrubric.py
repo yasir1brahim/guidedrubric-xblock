@@ -11,9 +11,11 @@ import time
 import re
 import json
 from django.conf import settings
-from xblock.fields import Scope, String
+from xblock.fields import Scope, String, Integer
 from django.template import Context, Template
 from xblock.completable import CompletableXBlockMixin
+from webob import Response
+import logging
 
 
 
@@ -391,6 +393,56 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         scope=Scope.settings,
     )
 
+    phases = String(
+        scope=Scope.content,
+        help="The phases to display to a student.",
+        default="[]"
+    )
+
+    last_phase_id = Integer(
+        scope=Scope.settings,
+        default=0,
+    )
+
+
+    @property
+    def block_phases(self):
+        phases_or_serialized_phases = self.phases
+
+        if phases_or_serialized_phases is None:
+            phases_or_serialized_phases = ''
+
+        try:
+            phases = json.loads(phases_or_serialized_phases)
+        except ValueError:
+            phases = []
+        logging.info('========phases')
+        logging.info(phases)
+        logging.info(type(phases))
+        return phases
+
+
+    @staticmethod
+    def json_response(data):
+        return Response(
+            json.dumps(data), content_type="application/json", charset="utf8"
+        )
+
+    @XBlock.handler
+    def studio_submit(self, request, _suffix):
+        self.assistant_name = request.params["assistant_name"]
+        self.phases = json.dumps(json.loads(request.params['phases']))
+        self.last_phase_id = request.params["last_phase_id"]
+        
+        logging.info('====self.phases')
+        logging.info(self.phases)
+        logging.info(type(self.phases))
+
+        response = {"result": "success", "errors": []}
+
+        
+        return self.json_response(response)
+
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
         data = pkg_resources.resource_string(__name__, path)
@@ -415,8 +467,8 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         # html = self.resource_string("static/html/guidedrubric.html")
         # html = self.resource_string("static/html/studio.html")
         # frag = Fragment(html.format(self=self))
-        frag.add_css(self.resource_string("static/css/guidedrubric.css"))
-        frag.add_javascript(self.resource_string("static/js/src/guidedrubric.js"))
+        frag.add_css(self.resource_string("static/css/studio.css"))
+        frag.add_javascript(self.resource_string("static/js/src/studio.js"))
         frag.initialize_js('GuidedRubricXBlock')
         return frag
 

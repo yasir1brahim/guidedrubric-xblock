@@ -21,18 +21,43 @@
 {% load i18n l10n %}
 
 <div class="wrapper-comp-settings is-active editor-with-buttons" id="settings-tab">
-    <ul class="list-input settings-list">
+    <form id="guided_rubric_form" action="">
+        <ul class="list-input settings-list">
 
-        <li class="field comp-setting-entry is-set">
-            <div class="wrapper-comp-setting">
-                <label class="label setting-label" for="assistant_name">{% trans field_assistant_name.display_name %}</label>
-                <input class="input setting-input" name="assistant_name" id="assistant_name" value="{{ guided_rubric_xblock.assistant_name }}" type="text" />
-            </div>
-            <span class="tip setting-help">{% trans field_assistant_name.help %}</span>
-        </li>
+            <li class="field comp-setting-entry is-set">
+                <div class="wrapper-comp-setting">
+                    <label class="label setting-label" for="assistant_name">{% trans field_assistant_name.display_name %}</label>
+                    <input class="input setting-input" name="assistant_name" id="assistant_name" value="{{ guided_rubric_xblock.assistant_name }}" type="text" />
+                </div>
+                <span class="tip setting-help">{% trans field_assistant_name.help %}</span>
+            </li>
+            
+            <input type="hidden" id="json_phases" value="{{ guided_rubric_xblock.phases }}"></input>
+            <input type="hidden" id="last_phase_id" value="{{ guided_rubric_xblock.last_phase_id }}"></input>
+            {% for block_phase in guided_rubric_xblock.block_phases %}
+                <li class="field comp-setting-entry is-set">
+                    <div class="wrapper-comp-setting">
+                        <label class="label setting-label" for="phase_name_{{ block_phase.phase_id }}">Phase Name</label>
+                        <input class="input setting-input phase-input" id="phase_name_{{ block_phase.phase_id }}" name="phase_name_{{ block_phase.phase_id }}" value="{{ block_phase.phase_name }}" type="text" required/>
+                    </div>
+                    <div class="wrapper-comp-setting">
+                        <label class="label setting-label" for="phase_question_{{ block_phase.phase_id }}">Question</label>
+                        <input class="input setting-input phase-input" id="phase_question_{{ block_phase.phase_id }}" name="phase_question_{{ block_phase.phase_id }}" value="{{ block_phase.phase_question }}" type="text" required/>
+                    </div>
+                </li>            
+            {% endfor %}
+            
+        </ul>
+    </form>
 
-        
-    </ul>
+
+    <div id="guided_rubric_add_phase" class="guided_rubric_container_add_button">
+        <h6>
+            {% trans "Add Phase" %}
+        </h6>
+    </div>
+
+
 
     <div class="xblock-actions">
         <ul>
