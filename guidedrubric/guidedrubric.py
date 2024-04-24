@@ -405,6 +405,11 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     )
 
 
+    helper_text = String(
+        scope=Scope.content
+    )
+
+
     @property
     def block_phases(self):
         phases_or_serialized_phases = self.phases

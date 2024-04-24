@@ -7,6 +7,7 @@
   padding: 10px;
   margin: 15px 10px;
 }
+
 .guided_rubric_container_add_button h6:before {
   font-family: "FontAwesome";
   display: inline-block;
@@ -21,6 +22,63 @@
   background-color: #009fe6;
   cursor: pointer;
 }
+
 #settings-tab .xblock-actions {
   position: unset;
+}
+
+
+li.field.dynamic-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center
+}
+
+.wrapper-comp-setting-container {
+  flex: 1;
+}
+
+.comp-remove-btn button {
+  background: none;
+  border: none;
+  text-transform: uppercase;
+  font-size: 1.2rem;
+  color: #626365;
+  display: flex;
+  align-items: center;
+  gap: .5rem
+}
+
+.comp-remove-btn button span {
+  font-weight: 900;
+  font-size: 2.2rem;
+}
+
+.dynamic-entry input {
+  width: 532px !important;
+  margin-left: 20px;
+
+}
+
+.comp-remove-btn button span {
+  margin-bottom: 2px
+}
+
+.comp-remove-btn button:hover {
+  background-color: #626365;
+  border-radius: 4px;
+  color: #fff;
+
+}
+
+.helper-content {
+  margin-left:26%;
+  margin-top:1rem
+}
+.helper-content ul {
+  margin-left:20px
+}
+
+.helper-content ul li, .helper-content p{
+  font-size:1rem
 }
