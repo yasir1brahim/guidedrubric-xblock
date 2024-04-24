@@ -11,9 +11,63 @@ import time
 import re
 import json
 from django.conf import settings
-from xblock.fields import Scope, String
+from xblock.fields import Scope, String, Integer
 from django.template import Context, Template
 from xblock.completable import CompletableXBlockMixin
+from webob import Response
+import json
+import hashlib
+import os
+import logging
+import re
+import xml.etree.ElementTree as ET
+import zipfile
+import mimetypes
+import urllib
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import tempfile
+
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
+from django.db.models import Q
+from django.template import Context, Template
+from django.utils import timezone
+from django.utils.module_loading import import_string
+from webob import Response
+import importlib_resources
+from six import string_types
+
+from web_fragments.fragment import Fragment
+from xblock.core import XBlock
+from xblock.completable import CompletableXBlockMixin
+from xblock.exceptions import JsonHandlerError
+from xblock.fields import Scope, String, Float, Boolean, Dict, DateTime, Integer
+import zipfile
+import os
+import shutil
+
+from webob import Response
+from xblock.core import XBlock
+from xblock.fields import Scope, String
+from xblock.fragment import Fragment
+from xblock.exceptions import JsonHandlerError
+
+import logging
+logger = logging.getLogger(__name__)
+
+try:
+    try:
+        from common.djangoapps.student.models import CourseEnrollment
+    except RuntimeError:
+        # Older Open edX releases have a different import path
+        from student.models import CourseEnrollment
+    from lms.djangoapps.courseware.models import StudentModule
+except ImportError:
+    CourseEnrollment = None
+    StudentModule = None
 
 
 
@@ -391,6 +445,47 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         scope=Scope.settings,
     )
 
+    assistant_instructions = String(
+        display_name=_("Assistant Instructions"),
+        help=_("Assistant Instructions"),
+        default="",
+        scope=Scope.settings,
+    )
+
+    # Non-editable model field for ChatGPT version
+    assistant_model = String(
+        display_name=_("Model"),
+        help=_("The version of ChatGPT currently used by the XBlock"),
+        default="ChatGPT4",
+        scope=Scope.content,
+        edit=False,
+    )
+
+    knowledge_base =  String(
+        display_name=_("Knowledge Base"),
+        help=_("Knowledge Base"),
+        default="",
+        scope=Scope.settings,
+    )
+
+    completion_message =  String(
+        display_name=_("Completion Message"),
+        help=_("Completion Message"),
+        default="",
+        scope=Scope.settings,
+    )
+
+    max_tokens_per_user = Integer(
+        display_name=_("Tokens"),
+        help=_("Max Tokens Per User"),
+        default="",
+        scope=Scope.settings,
+
+    )
+
+    package_meta = Dict(scope=Scope.content)
+    scorm_version = String(default="SCORM_12", scope=Scope.settings)
+
     def resource_string(self, path):
         """Handy helper for getting resources from our kit."""
         data = pkg_resources.resource_string(__name__, path)
@@ -401,11 +496,20 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         template = Template(template_str)
         return template.render(Context(context))
 
+    
+    
+    
     # TO-DO: change this view to display your data your own way.
     def studio_view(self, context=None):
         studio_context = {
             "field_assistant_name": self.fields["assistant_name"],
-            "guided_rubric_xblock": self,
+            "field_assistant_instructions": self.fields["assistant_instructions"],
+            "field_assistant_model": self.fields["assistant_model"],
+            "field_knowledge_base": self.fields["knowledge_base"],
+            "field_completion_message": self.fields["completion_message"],
+            "field_max_tokens_per_user": self.fields["max_tokens_per_user"],
+            "guided_rubric_xblock": self
+            
         }
         studio_context.update(context or {})
         template = self.render_template("static/html/studio.html", studio_context)
@@ -416,10 +520,113 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         # html = self.resource_string("static/html/studio.html")
         # frag = Fragment(html.format(self=self))
         frag.add_css(self.resource_string("static/css/guidedrubric.css"))
-        frag.add_javascript(self.resource_string("static/js/src/guidedrubric.js"))
+        frag.add_javascript(self.resource_string("static/js/src/studio.js"))
         frag.initialize_js('GuidedRubricXBlock')
         return frag
+    
+    @staticmethod
+    def json_response(data):
+        return Response(
+            json.dumps(data), content_type="application/json", charset="utf8"
+        )
 
+    @XBlock.handler
+    def studio_submit(self, request, _suffix):
+        self.assistant_name = request.params["assistant_name"]
+        self.assistant_instructions = request.params["assistant_instructions"]
+        self.assistant_model = request.params["assistant_model"]
+        # self.knowledge_base = request.params["knowledge_base"]
+        self.completion_message = request.params["completion_message"]
+        self.max_tokens_per_user = request.params["max_tokens_per_user"]
+       
+        response = {"result": "success", "errors": []}
+
+        knowledge_base = request.params.get("knowledge_base")
+        print("knowledge_base request================>", request.params)
+        print("knowledge_base================>", knowledge_base)
+
+        package_file = request.params["knowledge_base"].file
+        print("package fileee", package_file)
+        # Extract zip file
+        try:
+            print("===============IN TRY==============")
+            self.extract_package(package_file)
+        except ScormError as e:
+            print("==============errorrrrrrrrrr================")
+            print(e)
+            response["errors"].append(e.args[0])
+
+        return self.json_response(response)
+        
+
+    def extract_package(self, package_file):
+        with zipfile.ZipFile(package_file, "r") as scorm_zipfile:
+            zipinfos = scorm_zipfile.infolist()
+            root_path = None
+            root_depth = -1
+            # Find root folder which contains imsmanifest.xml
+            for zipinfo in zipinfos:
+                # if os.path.basename(zipinfo.filename) == "imsmanifest.xml":
+                depth = len(os.path.split(zipinfo.filename))
+                if depth < root_depth or root_depth < 0:
+                    root_path = os.path.dirname(zipinfo.filename)
+                    root_depth = depth
+
+            for zipinfo in zipinfos:
+                print("zipinfo",zipinfo)
+                # Extract only files that are below the root
+                if zipinfo.filename.startswith(root_path):
+                    # Do not unzip folders, only files. In Python 3.6 we will have access to
+                    # the is_dir() method to verify whether a ZipInfo object points to a
+                    # directory.
+                    # https://docs.python.org/3.6/library/zipfile.html#zipfile.ZipInfo.is_dir
+                    if not zipinfo.filename.endswith("/"):
+                        dest_path = os.path.join(
+                            self.extract_folder_path,
+                            os.path.relpath(zipinfo.filename, root_path),
+                        )
+                        self.storage.save(
+                            dest_path,
+                            ContentFile(scorm_zipfile.read(zipinfo.filename)),
+                        )
+                        print("DESTINATION PATH", dest_path)
+                        
+    @property
+    def extract_folder_path(self):
+        """
+        This path needs to depend on the content of the scorm package. Otherwise,
+        served media files might become stale when the package is update.
+        """
+        # return os.path.join(self.extract_folder_base_path, self.package_meta["sha1"])
+        return os.path.join(self.extract_folder_base_path)
+    
+    @property
+    def extract_folder_base_path(self):
+        """
+        Path to the folder where packages will be extracted.
+        """
+
+        print("=========self.location.block_id==========")
+        print(self.location.block_id)
+        return os.path.join(self.scorm_location(), self.location.block_id)
+        # return os.path.join(self.scorm_location())
+    
+    def scorm_location(self):
+        """
+        Unzipped files will be stored in a media folder with this name, and thus
+        accessible at a url with that also includes this name.
+        """
+        
+        print("=========self.location.block_id==========")
+        print(self.location.block_id)
+        default_scorm_location = "guided-rubric"
+        return self.xblock_settings.get("LOCATION", default_scorm_location)
+
+
+
+
+
+    
     def student_view(self, context=None):
         """
         The primary view of the GuidedRubricXBlock, shown to students
@@ -458,3 +665,60 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
                 </vertical_demo>
              """),
         ]
+    @property
+    def storage(self):
+        """
+        Return the storage backend used to store the assets of this xblock. This is a cached property.
+        """
+        if not getattr(self, "_storage", None):
+
+            def get_default_storage(_xblock):
+                return default_storage
+
+            storage_func = self.xblock_settings.get("STORAGE_FUNC", get_default_storage)
+            if isinstance(storage_func, string_types):
+                storage_func = import_string(storage_func)
+            self._storage = storage_func(self)
+
+        return self._storage
+
+    @property
+    def xblock_settings(self):
+        """
+        Return a dict of settings associated to this XBlock.
+        """
+        settings_service = self.runtime.service(self, "settings") or {}
+        if not settings_service:
+            return {}
+        return settings_service.get_settings_bucket(self)
+
+
+def parse_int(value, default):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def parse_float(value, default):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def parse_validate_positive_float(value, name):
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"Could not parse value of '{name}' (must be float): {value}"
+        )
+    if parsed < 0:
+        raise ValueError(f"Value of '{name}' must not be negative: {value}")
+    return parsed
+
+
+class ScormError(Exception):
+    pass
+
