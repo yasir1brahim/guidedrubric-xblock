@@ -19,13 +19,13 @@ function GuidedRubricXBlock(runtime, element) {
     loadingMsg.appendChild(loader);
 
     // Handlers
-    var handlerUrl = runtime.handlerUrl(element, 'update_last_phase_id');
+    var handlerUrl = runtime.handlerUrl(element, 'send_message');
 
     function send_message(message) {
         return $.ajax({
             type: "POST",
             url: handlerUrl,
-            data: JSON.stringify({"last_attempted_phase_id": message}),
+            data: JSON.stringify({"message": message}),
             contentType:"application/json; charset=utf-8",
             dataType: "json",
         }).done(function(response) {
@@ -54,18 +54,18 @@ function GuidedRubricXBlock(runtime, element) {
         document.querySelector('.chat-input').style.display = 'none';
         errorMsg.textContent = "";
         let newMsg = document.createElement('div');
-        // newMsg.textContent = "Your Answer: " + chatMsg.value;
-        // newMsg.classList.add("my-msg");
-        // status.classList.add("status");
-        // status.textContent = "Status: Pending";
-        // chatLogs.appendChild(newMsg);
-        // chatLogs.appendChild(status)
-        // chatLogs.appendChild(loadingMsg);
+        newMsg.textContent = "Your Answer: " + chatMsg.value;
+        newMsg.classList.add("my-msg");
+        status.classList.add("status");
+        status.textContent = "Status: Pending";
+        chatLogs.appendChild(newMsg);
+        chatLogs.appendChild(status)
+        chatLogs.appendChild(loadingMsg);
 
         last_attempted_phase_id = $('#last_attempted_phase_id').val()
 
         chatMsg.value = "";
-        send_message(last_attempted_phase_id);
+        send_message(newMsg.textContent);
     });
     skipBtn.addEventListener('click', function() {
         var status = document.createElement('div');
