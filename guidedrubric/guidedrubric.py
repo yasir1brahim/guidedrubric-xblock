@@ -41,14 +41,13 @@ from webob import Response
 import logging
 import xml.etree.ElementTree as ET
 from django.core.files.uploadedfile import InMemoryUploadedFile
+import tempfile
+import shutil
 import logging
 logger = logging.getLogger(__name__)
 
 from xblockutils.resources import ResourceLoader
 loader = ResourceLoader(__name__)
-
-import logging
-logger = logging.getLogger(__name__)
 
 try:
     try:
@@ -488,6 +487,13 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         scope=Scope.settings,
     )
 
+    zip_file =  String(
+        display_name=_("zip_file"),
+        help=_("zip_file"),
+        default="",
+        scope=Scope.settings,
+    )
+
     completion_message =  String(
         display_name=_("Completion Message"),
         help=_("Completion Message"),
@@ -599,9 +605,17 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         knowledge_base = request.params.get("knowledge_base")
         if knowledge_base:
             try:
+                
                 package_file = request.params["knowledge_base"].file
+                dest_path_2 = os.path.join(self.extract_folder_base_path, self.knowledge_base)
+                print("DEST PATHHH", dest_path_2)
+                self.zip_file = dest_path_2
+                self.storage.save(dest_path_2, package_file)
+                # dest_path_2 = os.path.join(settings.MEDIA_ROOT, self.knowledge_base)
+                # self.storage.save(dest_path_2, package_file)
+
                 # Extract zip file
-                self.extract_package(package_file)
+                #self.extract_package(package_file)
                 extracted_files = self.extract_package(package_file)
                 # Save the extracted file names in the knowledge base
             
@@ -629,7 +643,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             zipinfos = scorm_zipfile.infolist()
             root_path = None
             root_depth = -1
-            # Find root folder which contains imsmanifest.xml
             for zipinfo in zipinfos:
                 depth = len(os.path.split(zipinfo.filename))
                 if depth < root_depth or root_depth < 0:
@@ -692,6 +705,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         """
         context = {
             "guided_rubric_xblock": self,
+            "block_id": self.location.block_id
         }
         context.update(context or {})
         # template = self.render_template("static/html/lms.html", context)
