@@ -51,8 +51,13 @@
                 <label class="label setting-label" for="knowledge_base">{% trans "Upload .zip package" %}</label>
                 <input class="input setting-input" name="knowledge_base" id="knowledge_base" type="file" accept="application/zip" />
             </div>
-        </li>
 
+            {% if guided_rubric_xblock.knowledge_base %}
+            <span class="tip setting-help setting-input-file"><span>{% trans "Currently:" %}</span> {{ guided_rubric_xblock.knowledge_base }}</span>
+            {% endif %}
+
+        </li>
+        
         <li class="field comp-setting-entry is-set">
             <div class="wrapper-comp-setting">
                 <label class="label setting-label" for="completion_message">{% trans field_completion_message.display_name %}</label>
@@ -60,7 +65,6 @@
             </div>
             <span class="tip setting-help">{% trans field_completion_message.help %}</span>
         </li>
-        
         <li class="field comp-setting-entry is-set">
             <div class="wrapper-comp-setting">
                 <label class="label setting-label" for="max_tokens_per_user">{% trans field_max_tokens_per_user.display_name %}</label>
@@ -69,7 +73,15 @@
             <span class="tip setting-help">{% trans field_max_tokens_per_user.help %}</span>
         </li>
 
-        
+        <li class="field comp-setting-entry is-set">
+            <div class="wrapper-comp-setting">
+                <label class="label setting-label" for="assistant_id">{% trans field_assistant_id.display_name %}</label>
+                <input class="input setting-input" name="assistant_id" id="assistant_id" value="{{ guided_rubric_xblock.assistant_id }}" type="text" disabled />
+            </div>
+            <span class="tip setting-help">{% trans field_assistant_id.help %}</span>
+        </li>
+
+
     </ul>
 
     <div class="xblock-actions">

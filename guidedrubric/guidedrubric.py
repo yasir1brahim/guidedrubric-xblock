@@ -1,45 +1,15 @@
 """TO-DO: Write a description of what this XBlock is."""
 
-import pkg_resources
-from web_fragments.fragment import Fragment
-from xblock.core import XBlock
-import openai
 from typing_extensions import override
-from openai import AssistantEventHandler
-from dotenv import load_dotenv
-import time
-import re
-import json
 from django.conf import settings
-from xblock.fields import Scope, String, Integer
 from django.template import Context, Template
-from xblock.completable import CompletableXBlockMixin
-from webob import Response
-import json
-import hashlib
-import os
-import logging
-import re
-import xml.etree.ElementTree as ET
-import zipfile
-import mimetypes
-import urllib
-from django.core.files.uploadedfile import InMemoryUploadedFile
-import tempfile
-
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
-
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db.models import Q
-from django.template import Context, Template
 from django.utils import timezone
 from django.utils.module_loading import import_string
 from webob import Response
-import importlib_resources
 from six import string_types
-
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
 from xblock.completable import CompletableXBlockMixin
@@ -47,14 +17,16 @@ from xblock.exceptions import JsonHandlerError
 from xblock.fields import Scope, String, Float, Boolean, Dict, DateTime, Integer
 import zipfile
 import os
-import shutil
-
-from webob import Response
-from xblock.core import XBlock
-from xblock.fields import Scope, String
-from xblock.fragment import Fragment
-from xblock.exceptions import JsonHandlerError
-
+import logging
+import re
+import json
+import pkg_resources
+import openai
+from openai import AssistantEventHandler
+from dotenv import load_dotenv
+import time
+import xml.etree.ElementTree as ET
+from django.core.files.uploadedfile import InMemoryUploadedFile
 import logging
 logger = logging.getLogger(__name__)
 
@@ -202,8 +174,8 @@ session_state = {
 current_question_index = session_state['current_question_index'] if 'current_question_index' in session_state else 0
 
 class AssistantManager:
-    thread_id = ""
-    assistant_id = "asst_BFlYa2t1svtMFaGbMkB4QuMp"
+    thread_id = None
+    assistant_id = None
 
 
     if 'current_question_index' not in session_state:
@@ -219,7 +191,7 @@ class AssistantManager:
         self.summary = None
 
         # Retrieve existing assistant and thread if IDs are already set
-        if AssistantManager.assistant_id:
+        if AssistantManager.assistant_id :
             self.assistant = self.client.beta.assistants.retrieve(
                 assistant_id=AssistantManager.assistant_id
             )
@@ -398,14 +370,10 @@ def main(user_input):
 
     #Create the assistant one time. Only if the Assistant ID is not found, create a new one. 
     manager = AssistantManager()
-
     manager.create_assistant(
-    name="Guided Rubric",
-    instructions="""You are a helpful tutor that is guiding a university student through a critical appraisal of a scholarly journal article. You want to encourage the students ideas, but you also want those idea to be rooted in evidence from the journal article that you'll fetch via retrieval. 
-
-Generally, you will be asked to provided feedback on the students answer based on the article, and you'll also sometimes be asked to score the submission based on a rubric which will be provided. More specific instructions will be given in the instructions via the API. 
-        """,
-    tools=""
+    name="",
+    instructions="""""",
+    tools=[],
     )
     manager.create_thread()
     
@@ -438,6 +406,8 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     # TO-DO: delete count, and define your own fields.
 
+    
+
     assistant_name = String(
         display_name=_("Assistant Name"),
         help=_("Assistan Name"),
@@ -457,6 +427,14 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         display_name=_("Model"),
         help=_("The version of ChatGPT currently used by the XBlock"),
         default="ChatGPT4",
+        scope=Scope.content,
+        edit=False,
+    )
+
+    assistant_id = String(
+        display_name=_("Assistant ID"),
+        help=_(""),
+        default="",
         scope=Scope.content,
         edit=False,
     )
@@ -503,14 +481,15 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     def studio_view(self, context=None):
         studio_context = {
             "field_assistant_name": self.fields["assistant_name"],
+            "field_assistant_id": self.fields["assistant_id"],
             "field_assistant_instructions": self.fields["assistant_instructions"],
             "field_assistant_model": self.fields["assistant_model"],
-            "field_knowledge_base": self.fields["knowledge_base"],
             "field_completion_message": self.fields["completion_message"],
             "field_max_tokens_per_user": self.fields["max_tokens_per_user"],
             "guided_rubric_xblock": self
             
         }
+
         studio_context.update(context or {})
         template = self.render_template("static/html/studio.html", studio_context)
         frag = Fragment(template)
@@ -530,74 +509,97 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             json.dumps(data), content_type="application/json", charset="utf8"
         )
 
+
     @XBlock.handler
     def studio_submit(self, request, _suffix):
         self.assistant_name = request.params["assistant_name"]
         self.assistant_instructions = request.params["assistant_instructions"]
         self.assistant_model = request.params["assistant_model"]
-        # self.knowledge_base = request.params["knowledge_base"]
+        self.knowledge_base = request.params["knowledge_base"].file._name
         self.completion_message = request.params["completion_message"]
         self.max_tokens_per_user = request.params["max_tokens_per_user"]
-       
+        
+
+        manager = AssistantManager()
+
+        manager.create_assistant(
+            name=self.assistant_name,
+            instructions=self.assistant_instructions,
+            tools=[{"type": "retrieval"}]
+        )
+        self.assistant_id = manager.assistant_id
         response = {"result": "success", "errors": []}
 
         knowledge_base = request.params.get("knowledge_base")
-        print("knowledge_base request================>", request.params)
-        print("knowledge_base================>", knowledge_base)
+        if knowledge_base:
+            try:
+                package_file = request.params["knowledge_base"].file
+                # Extract zip file
+                self.extract_package(package_file)
+                extracted_files = self.extract_package(package_file)
+                # Save the extracted file names in the knowledge base
+            
+                # Upload each extracted file to OpenAI and associate them with the assistant
+                for file_path in extracted_files:
+                    with open(file_path, 'rb') as file:
+                        uploaded_file = client.files.create(file=file, purpose='assistants')
 
-        package_file = request.params["knowledge_base"].file
-        print("package fileee", package_file)
-        # Extract zip file
-        try:
-            print("===============IN TRY==============")
-            self.extract_package(package_file)
-        except ScormError as e:
-            print("==============errorrrrrrrrrr================")
-            print(e)
-            response["errors"].append(e.args[0])
+                    # Associate the uploaded file with the assistant
+                    client.beta.assistants.files.create(assistant_id=self.assistant_id, file_id=uploaded_file.id)
+
+            except Exception as e:
+                print(e)
+                response["errors"].append("Knowledge base file not provided.")
+
 
         return self.json_response(response)
         
 
+    
     def extract_package(self, package_file):
+        extracted_files = []  # Initialize list to store extracted file paths
+        
         with zipfile.ZipFile(package_file, "r") as scorm_zipfile:
             zipinfos = scorm_zipfile.infolist()
             root_path = None
             root_depth = -1
             # Find root folder which contains imsmanifest.xml
             for zipinfo in zipinfos:
-                # if os.path.basename(zipinfo.filename) == "imsmanifest.xml":
                 depth = len(os.path.split(zipinfo.filename))
                 if depth < root_depth or root_depth < 0:
                     root_path = os.path.dirname(zipinfo.filename)
                     root_depth = depth
 
             for zipinfo in zipinfos:
-                print("zipinfo",zipinfo)
                 # Extract only files that are below the root
-                if zipinfo.filename.startswith(root_path):
-                    # Do not unzip folders, only files. In Python 3.6 we will have access to
-                    # the is_dir() method to verify whether a ZipInfo object points to a
-                    # directory.
-                    # https://docs.python.org/3.6/library/zipfile.html#zipfile.ZipInfo.is_dir
-                    if not zipinfo.filename.endswith("/"):
-                        dest_path = os.path.join(
-                            self.extract_folder_path,
-                            os.path.relpath(zipinfo.filename, root_path),
-                        )
-                        self.storage.save(
-                            dest_path,
-                            ContentFile(scorm_zipfile.read(zipinfo.filename)),
-                        )
-                        print("DESTINATION PATH", dest_path)
+                if zipinfo.filename.startswith(root_path) and not zipinfo.filename.endswith("/"):
+                    dest_path = os.path.join(
+                        self.extract_folder_path,
+                        os.path.relpath(zipinfo.filename, root_path),
+                    )
+                    dest_path_2 = os.path.join(
+                    settings.MEDIA_ROOT,  # Prepend MEDIA_ROOT to the destination path
+                    self.extract_folder_path,
+                    os.path.relpath(zipinfo.filename, root_path),
+                )
+
+                    self.storage.save(
+                        dest_path,
+                        ContentFile(scorm_zipfile.read(zipinfo.filename)),
+                    )                   
+                    # Append the extracted file path to the list
+                    extracted_files.append(dest_path_2)
                         
+        # Return the list of extracted file paths
+        return extracted_files
+    
+            
     @property
     def extract_folder_path(self):
         """
         This path needs to depend on the content of the scorm package. Otherwise,
         served media files might become stale when the package is update.
         """
-        # return os.path.join(self.extract_folder_base_path, self.package_meta["sha1"])
         return os.path.join(self.extract_folder_base_path)
     
     @property
@@ -605,26 +607,16 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         """
         Path to the folder where packages will be extracted.
         """
-
-        print("=========self.location.block_id==========")
-        print(self.location.block_id)
         return os.path.join(self.scorm_location(), self.location.block_id)
-        # return os.path.join(self.scorm_location())
-    
+        
     def scorm_location(self):
         """
         Unzipped files will be stored in a media folder with this name, and thus
         accessible at a url with that also includes this name.
         """
-        
-        print("=========self.location.block_id==========")
-        print(self.location.block_id)
+
         default_scorm_location = "guided-rubric"
         return self.xblock_settings.get("LOCATION", default_scorm_location)
-
-
-
-
 
     
     def student_view(self, context=None):
