@@ -1,0 +1,269 @@
+* {
+    box-sizing: border-box;
+}
+
+.gudied-critical-analysis-container {
+    width: 78%;
+    margin: 0 auto
+}
+
+.guided-critical-analysis-header {
+    background: url("https://i.ibb.co/mvFqcjX/title-bg.jpg");
+    background-position: center;
+    background-size: cover;
+    color: white;
+    padding-top: 30px;
+    padding-left: 25px;
+    padding-right: 40px;
+    padding-bottom: 30px;
+    border-radius: 0.156vw;
+}
+
+.guided-critical-analysis-header h1 {
+    color: white;
+    margin: 0px;
+    margin-bottom: 10px !important;
+    font-size: 25px;
+    font-weight: 700;
+}
+
+.guided-critical-analysis-header p {
+    font-size: 13px;
+    line-height: 20px;
+    margin-bottom: 0;
+}
+
+.guided-critical-analysis-body {
+    padding: 0px 30px;
+}
+
+.micro-ai-btn-primary {
+    margin: 40px 0px;
+}
+
+.micro-ai-btn-primary a button,
+.micro-ai-btn-primary button {
+    font-size: 12px;
+    text-transform: uppercase;
+    color: white;
+    font-weight: 500;
+    background: linear-gradient(to right, #B42669, #26358B);
+    box-shadow: none;
+    padding: 5px 15px;
+    border-radius: 3px;
+}
+
+.micro-ai-btn-primary a button,
+.micro-ai-btn-primary button:focus {
+    box-shadow: none;
+    outline: none;
+    opacity: .8
+}
+
+.micro-ai-btn-primary a button:hover,
+.micro-ai-btn-primary button:hover {
+    background-image: none;
+    background: linear-gradient(to right, #b42669e3, #26358bd9);
+    box-shadow: none;
+}
+
+.demo-text {
+    font-size: 13px;
+    color: #56536E;
+}
+
+.demo-text span {
+    font-weight: 600;
+}
+
+.chatgpt_wrapper .chatbox .questions {
+    font-size: 20px;
+    color: #007DB8;
+    font-weight: 600;
+    margin-bottom: 20px;
+    margin-top: 35px;
+}
+
+textarea#chat-msg {
+    width: 100%;
+    font-size: 13px;
+    border-radius: 5px;
+    padding: 15px 0;
+    padding-left: 15px;
+    outline: none;
+    box-shadow: none;
+    height: 51px;
+    resize: none;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+    border: none;
+}
+
+.micro-ai-btn-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.btn-ghost {
+    background: none !important;
+    color: #9C2059 !important;
+    border: 2px solid #9C2059;
+    font-weight: 700 !important;
+}
+
+.course-wrapper .course-content p,
+.course-wrapper .courseware-results-wrapper p {
+    margin-bottom: 0;
+}
+
+div#prompt-with-loader {
+    position: relative;
+}
+
+#prompt-with-loader .lds-dual-ring {
+    position: absolute;
+    right: 20px;
+    top: 12px;
+    width: 20px;
+    height: 20px;
+}
+
+#prompt-with-checkbox {
+    position: relative
+}
+
+#prompt-with-checkbox img {
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    width: 25px;
+}
+
+.lds-dual-ring:after {
+    content: '';
+    display: block;
+    width: 25px;
+    height: 25px;
+    margin: 0px;
+    font-size: 14px;
+    background-size: 10%;
+    background: url('https://i.ibb.co/qCW6qtC/loader.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    border: none;
+    background-size: 25px;
+    animation: lds-dual-ring 1.2s linear infinite;
+}
+
+@keyframes lds-dual-ring {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+/*Prompt Accordion */
+.accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.accordion .accordion-item {
+    background-color: var(--background-color);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+}
+
+.accordion .accordion-item .accordion-item-description-wrapper hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    visibility: visible;
+}
+
+.accordion .accordion-item.open .accordion-item-description-wrapper hr {
+    visibility: visible;
+}
+
+.accordion .accordion-item .accordion-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 4.8px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+    width: 100%;
+    font-size: 13px;
+    border-radius: 5px;
+    padding: 15px 0;
+    padding-left: 15px;
+    outline: none;
+    height: 51px;
+}
+
+.accordion .accordion-item .accordion-item-header .accordion-item-header-title {
+    font-weight: 500;
+    font-size: 13px;
+    border-radius: 5px;
+    padding: 15px 0;
+    padding-left: 15px;
+    outline: none;
+    box-shadow: none;
+    height: 51px;
+    resize: none;
+    color: #56536E;
+}
+
+.accordion .accordion-item .accordion-item-header .accordion-item-header-icon {
+    transition: var(--transition);
+    margin-right: 20px;
+}
+
+.accordion .accordion-item.open .accordion-item-header .accordion-item-header-icon {
+    transform: rotate(-180deg);
+}
+
+.accordion .accordion-item .accordion-item-description-wrapper {
+    display: grid;
+    grid-template-rows: 0fr;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.accordion .accordion-item.open .accordion-item-description-wrapper {
+    grid-template-rows: 1fr;
+}
+
+.accordion .accordion-item .accordion-item-description-wrapper .accordion-item-description {
+    min-height: 0;
+}
+
+.accordion .accordion-item .accordion-item-description-wrapper .accordion-item-description p {
+    padding: 10px;
+    line-height: 1.5;
+}
+
+
+.prompt-accordion {
+    margin-top: 25px;
+}
+
+
+/* For Small Screens */
+@media (max-width: 1024px) {
+    .gudied-critical-analysis-container {
+        width: 100%;
+    }
+
+    .guided-critical-analysis-body {
+        padding: 0px 15px
+    }
+
+    .chatgpt_wrapper .chatbox .questions {
+        font-size: 20px;
+    }
+}

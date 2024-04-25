@@ -1,4 +1,4 @@
-<h1>Guided Critical Analysis</h1>
+{% comment %} <h1>Guided Critical Analysis</h1>
 <p>In this guided article review, we'll both read the same journal article. Then, you'll be guided through an analysis of the paper. Let's begin by reading the paper!</p>
 <a href="http://up.csail.mit.edu/other-pubs/las2014-pguo-engagement.pdf">View PDF</a>
 <p>This is a **DEMO**</p>
@@ -18,4 +18,68 @@
             </div>
         </div>
     </div>
-</div>
+</div> {% endcomment %}
+
+<div class="gudied-critical-analysis-container">
+
+        <div class="guided-critical-analysis-header">
+            <h1>Guided Critical Analysis</h1>
+            <p>In this guided article review, we'll both read the same journal article. Then, you'll be guided through
+                an
+                analysis of the paper. Let's begin by reading the paper!</p>
+        </div>
+        <div class="guided-critical-analysis-body">
+            <div class="micro-ai-btn-primary"> <a
+                    href="http://up.csail.mit.edu/other-pubs/las2014-pguo-engagement.pdf"><button>View PDF</button></a>
+            </div>
+            <div class="demo-text">
+                <p>This is a <span>DEMO</span>, so sample answers are <span> pre-filled </span></p>
+            </div>
+            <div class="prompt-accordion">
+                <div class="accordion">
+                    <div class="accordion-item">
+                        <div class="accordion-item-header">
+                            <span class="accordion-item-header-title">Learn how it works</span>
+                            <svg onclick="ShowInstructions()" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="lucide lucide-chevron-down accordion-item-header-icon">
+                                <path d="m6 9 6 6 6-6"></path>
+                            </svg>
+                        </div>
+                        <div class="accordion-item-description-wrapper">
+                            <div class="accordion-item-description">
+                                <hr>
+                                <p>This is the description for Accordion Item 1. This is the description for Accordion
+                                    Item 1.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="chatgpt_wrapper">
+                <div class="chatgpt_block">
+                    <div class="chatbox">
+                        <div id="chat-logs">
+                            <p class="questions">What is your name?</p>
+                        </div>
+
+                        <div class="chat-input" style="display: block;" id="prompt-with-loader">
+                            <div class="lds-dual-ring"></div><span id="error-msg"></span>
+                            <textarea id="chat-msg" placeholder="Enter Prompt ... " rows="24" cols="230"></textarea>
+
+
+                        </div>
+                        <div class="chat-input" style="display: block;" id="prompt-with-checkbox">
+                            <img src="https://i.ibb.co/zmpCtwF/checkicon.png"><span id="error-msg"></span>
+                            <textarea id="chat-msg" placeholder="Enter Prompt ... " rows="24" cols="230"></textarea>
+
+
+                        </div>
+                        <div class="micro-ai-btn-primary micro-ai-btn-container"><button id="send-btn">Submit</button>
+                            <button id="skip-btn" class="btn-ghost">Skip Question</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

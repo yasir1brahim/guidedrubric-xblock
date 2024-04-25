@@ -35,6 +35,18 @@ from webob import Response
 import logging
 import xml.etree.ElementTree as ET
 from django.core.files.uploadedfile import InMemoryUploadedFile
+
+from xblock.completable import CompletableXBlockMixin
+from webob import Response
+import logging
+import xml.etree.ElementTree as ET
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import logging
+logger = logging.getLogger(__name__)
+
+from xblockutils.resources import ResourceLoader
+loader = ResourceLoader(__name__)
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -682,15 +694,17 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             "guided_rubric_xblock": self,
         }
         context.update(context or {})
-        template = self.render_template("static/html/lms.html", context)
-        frag = Fragment(template)
+        # template = self.render_template("static/html/lms.html", context)
+        # frag = Fragment(template)
+        frag = Fragment()
 
 
 
 
         # html = self.resource_string("static/html/guidedrubric.html")
         # frag = Fragment(html.format(self=self))
-        frag.add_css(self.resource_string("static/css/guidedrubric.css"))
+        frag.add_content(loader.render_template("static/html/lms.html",context))
+        frag.add_css(self.resource_string("static/css/lms.css"))
         frag.add_javascript(self.resource_string("static/js/src/lms.js"))
         frag.initialize_js('GuidedRubricXBlock')
         return frag
