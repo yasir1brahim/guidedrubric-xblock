@@ -410,6 +410,12 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     )
 
 
+    last_attempted_phase_id = Integer(
+        scope=Scope.user_state,
+        default=0,
+    )
+
+
     @property
     def block_phases(self):
         phases_or_serialized_phases = self.phases
@@ -482,10 +488,20 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         The primary view of the GuidedRubricXBlock, shown to students
         when viewing courses.
         """
-        html = self.resource_string("static/html/guidedrubric.html")
-        frag = Fragment(html.format(self=self))
+        context = {
+            "guided_rubric_xblock": self,
+        }
+        context.update(context or {})
+        template = self.render_template("static/html/lms.html", context)
+        frag = Fragment(template)
+
+
+
+
+        # html = self.resource_string("static/html/guidedrubric.html")
+        # frag = Fragment(html.format(self=self))
         frag.add_css(self.resource_string("static/css/guidedrubric.css"))
-        frag.add_javascript(self.resource_string("static/js/src/guidedrubric.js"))
+        frag.add_javascript(self.resource_string("static/js/src/lms.js"))
         frag.initialize_js('GuidedRubricXBlock')
         return frag
 
@@ -496,6 +512,14 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         """Send message to OpenAI, and return the response"""
         user_input = data['message']
         res = main(user_input)
+        return {'result': 'success' if res else 'failed', 'response': res}
+
+    
+    @XBlock.json_handler
+    def update_last_phase_id(self, data, suffix=""):
+        """Send message to OpenAI, and return the response"""
+        self.last_attempted_phase_id = data['last_attempted_phase_id']
+        res = {'success': True}
         return {'result': 'success' if res else 'failed', 'response': res}
 
     # TO-DO: change this to create the scenarios you'd like to see in the
