@@ -241,6 +241,7 @@ class AssistantManager:
             AssistantManager.thread_id = thread_obj.id
             self.thread = thread_obj
             print(f"ThreadID::: {self.thread.id}")
+            return self.thread.id
 
     def add_message_to_thread(self, role, content):
         if self.thread:
@@ -379,6 +380,8 @@ def handle_assistant_interaction(index, manager, user_input):
         role="user", content=user_input
     )
     instructions = build_instructions(index)
+    logging.info('===========instructions')
+    logging.info(instructions)
     manager.run_assistant(instructions, False)
     # manager.wait_for_completion()
     summary = manager.get_summary()
@@ -435,7 +438,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     )
 
     phases = String(
-        scope=Scope.content,
+        scope=Scope.settings,
         help="The phases to display to a student.",
         default="[]"
     )
@@ -454,6 +457,11 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     last_attempted_phase_id = Integer(
         scope=Scope.user_state,
         default=0,
+    )
+
+    open_ai_thread_id = String(
+        scope=Scope.user_state,
+        default="",
     )
 
     assistant_instructions = String(
@@ -512,6 +520,8 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     @property
     def block_phases(self):
+        logging.info('==========phases property')
+        logging.info(self.phases)
         phases_or_serialized_phases = self.phases
 
         if phases_or_serialized_phases is None:
@@ -519,12 +529,24 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
         try:
             phases = json.loads(phases_or_serialized_phases)
-        except ValueError:
+        except Exception as e:
+            logging.info('============error')
+            logging.info(e)
             phases = []
         logging.info('========phases')
         logging.info(phases)
         logging.info(type(phases))
         return phases
+    
+    def get_next_question(self):
+        logging.info('=========self')
+        logging.info(self)
+        logging.info(self.last_attempted_phase_id)
+        next_phase_id = self.last_attempted_phase_id
+        for item in self.block_phases:
+            phase_id = int(item.get('phase_id'))
+            if phase_id == next_phase_id:
+                return item.get('phase_question')
 
 
     @staticmethod
@@ -688,6 +710,27 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         Path to the folder where packages will be extracted.
         """
         return os.path.join(self.scorm_location(), self.location.block_id)
+
+
+    def get_phase(self, phase_id):
+        for item in self.block_phases:
+            if int(item.get('phase_id')) == phase_id:
+                return item
+    
+    def get_next_phase_id(self):
+        logging.info('==========inside get_next_phase_id')
+        for item in self.block_phases:
+            phase_id = int(item.get('phase_id'))
+            logging.info('====phase id')
+            logging.info(phase_id)
+            logging.info(type(phase_id))
+            if phase_id != int(self.last_attempted_phase_id) and phase_id > int(self.last_attempted_phase_id):
+                logging.info('==========get_next_phase_id')
+                logging.info(phase_id)
+                return phase_id
+    
+
+
         
     def scorm_location(self):
         """
@@ -706,7 +749,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         """
         context = {
             "guided_rubric_xblock": self,
-            "block_id": self.location.block_id
+            "next_question": self.get_next_question()
         }
         context.update(context or {})
         # template = self.render_template("static/html/lms.html", context)
@@ -724,13 +767,128 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         frag.initialize_js('GuidedRubricXBlock')
         return frag
 
+
+    def build_instructions(self, phase_id, graded_step):
+        phase = None
+        for item in self.block_phases:
+            if int(item.get('phase_id')) == phase_id:
+                phase = item
+                break
+        if graded_step:
+            if phase.get('scored_question', None):
+                compiled_instructions = """Please provide a score for the previous user message in this thread. Use the following rubric:
+                """ + phase["rubric"] + """
+                Please output your response as JSON, using this format: { "[criteria 1]": "[score 1]", "[criteria 2]": "[score 2]", "total": "[total score]" }"""
+        else:
+            compiled_instructions = phase["ai_instructions"] + phase["phase_question"]
+
+        return compiled_instructions
+
+    
+    def handle_assistant_interaction(self, index, manager, user_input):
+        manager.add_message_to_thread(
+            role="user", content=user_input
+        )
+        instructions = self.build_instructions(index, False)
+        logging.info('===========instructions')
+        logging.info(instructions)
+        manager.run_assistant(instructions, False)
+        # manager.wait_for_completion()
+        summary = manager.get_summary()
+        #session_state[f"phase_{index}_summary"] = summary
+        return summary
+
+
+    def extract_score(self, text):
+        # Define the regular expression pattern
+        #regex has been modified to grab the total value whether or not it is returned inside double quotes. The AI seems to fluctuate between using quotes around values and not. 
+        pattern = r'"total":\s*"?(\d+)"?'
+        
+        # Use regex to find the score pattern in the text
+        match = re.search(pattern, text)
+        
+        # If a match is found, return the score, otherwise return None
+        if match:
+            return int(match.group(1))
+        else:
+            return 0
+
+    
+    def check_score(self, score, phase_id):
+        phase = self.get_phase(phase_id)
+        if score >= int(phase["minimum_score"]):
+            return True
+        else:
+            return False
+    
+
+    def handle_assistant_grading(self, index, manager):
+
+        instructions = self.build_instructions(index, True)
+        manager.run_assistant(instructions, True)
+
+        # manager.wait_for_completion()
+        summary = manager.get_summary()
+        #session_state[f"phase_{index}_rubric"] = summary
+
+        score = self.extract_score(str(summary))
+        #session_state[f"phase_{index}_score"] = score
+
+        phase_state = None
+        #If the score passes, then increase the index to move to the next step                
+        if self.check_score(score, index):
+            #session_state['current_question_index'] += 1
+            self.last_attempted_phase_id = self.get_next_phase_id()
+            phase_state = "Success"
+        else:
+            phase_state = "Fail"
+        return phase_state
+
+
+    def handle_skip(self):
+        self.last_attempted_phase_id = self.get_next_phase_id()
+
+
+    def handle_interaction(self, user_input):
+
+        manager = AssistantManager()
+        manager.assistant_id = self.assistant_id
+
+        if not self.open_ai_thread_id:    
+            thread_id = manager.create_thread()
+            self.open_ai_thread_id = thread_id
+        
+        manager.thread_id = self.open_ai_thread_id
+        
+        if  self.last_attempted_phase_id <= self.last_phase_id - 1:
+            index = int(self.last_attempted_phase_id)
+            if user_input == "skip":
+                self.handle_skip()
+                hand_intr = None
+                hand_gra = None
+            elif self.last_attempted_phase_id <= self.last_phase_id:
+                hand_intr = self.handle_assistant_interaction(index, manager, user_input)
+                hand_gra = self.handle_assistant_grading(index, manager)
+            try:
+                logging.info('=======getting next phase question')
+                logging.info(self.last_attempted_phase_id)
+                phase = self.get_phase(self.last_attempted_phase_id)
+                question = phase['phase_question']
+            except:
+                question = None
+            messages_to_send = ai_messages.copy()
+            ai_messages.clear()
+        return hand_intr, hand_gra, question, messages_to_send
+
     # TO-DO: change this handler to perform your own actions.  You may need more
     # than one handler, or you may not need any handlers at all.
     @XBlock.json_handler
     def send_message(self, data, suffix=""):
         """Send message to OpenAI, and return the response"""
+        #self.last_attempted_phase_id = 1
         user_input = data['message']
-        res = main(user_input)
+        #res = main(user_input)
+        res = self.handle_interaction(user_input)
         return {'result': 'success' if res else 'failed', 'response': res}
 
     
