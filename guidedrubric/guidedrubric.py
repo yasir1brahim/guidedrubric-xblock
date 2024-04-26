@@ -474,6 +474,11 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         default="",
     )
 
+    user_response = Dict(
+        scope=Scope.user_state,
+        default="",
+    )
+
     assistant_instructions = String(
         display_name=_("Assistant Instructions"),
         help=_("Assistant Instructions"),
@@ -777,7 +782,8 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         context = {
             "guided_rubric_xblock": self,
             "next_question": self.get_next_question(),
-            "button_label": self.get_phase(self.last_attempted_phase_id)['button_label']
+            "button_label" : "submit"
+            # "button_label": self.get_phase(self.last_attempted_phase_id)['button_label'] if self.get_phase(self.last_attempted_phase_id)['button_label'] else "" 
         }
         context.update(context or {})
         # template = self.render_template("static/html/lms.html", context)
@@ -917,10 +923,14 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     @XBlock.json_handler
     def send_message(self, data, suffix=""):
         """Send message to OpenAI, and return the response"""
-        #self.last_attempted_phase_id = 1
+
+        print("ATTEMPTED IDDD")
+        print(self.last_attempted_phase_id)
+        self.last_attempted_phase_id = 1
         user_input = data['message']
         #res = main(user_input)
         res = self.handle_interaction(user_input)
+        print("resss", res)
         return {'result': 'success' if res else 'failed', 'response': res}
 
     
