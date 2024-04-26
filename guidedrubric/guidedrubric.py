@@ -917,7 +917,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     @XBlock.json_handler
     def send_message(self, data, suffix=""):
         """Send message to OpenAI, and return the response"""
-        self.last_attempted_phase_id = 1
+        #self.last_attempted_phase_id = 1
         user_input = data['message']
         #res = main(user_input)
         res = self.handle_interaction(user_input)

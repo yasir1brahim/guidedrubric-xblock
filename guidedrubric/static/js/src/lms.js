@@ -40,6 +40,9 @@ function GuidedRubricXBlock(runtime, element) {
                     //statusElements[statusElements.length - 1].textContent = "Status: " + response.response[1];
                 }
                 chatLogs.removeChild(loadingMsg);
+                console.log('========calling keep_user_response')
+                console.log(message)
+                keep_user_response(message)
                 type_message(response.response);
             } else {
                 alert("You've reached the end of the exercise. Hope you learned something!");
@@ -58,6 +61,7 @@ function GuidedRubricXBlock(runtime, element) {
         }
         document.querySelector('.chat-input').style.display = 'none';
         errorMsg.textContent = "";
+        var chat_message = chatMsg.value;
         let newMsg = document.createElement('div');
         //newMsg.textContent = "Your Answer: " + chatMsg.value;
         newMsg.classList.add("my-msg");
@@ -70,7 +74,7 @@ function GuidedRubricXBlock(runtime, element) {
         last_attempted_phase_id = $('#last_attempted_phase_id').val()
 
         chatMsg.value = "";
-        send_message(newMsg.textContent);
+        send_message(chat_message);
     });
     skipBtn.addEventListener('click', function() {
         var status = document.createElement('div');
@@ -86,6 +90,20 @@ function GuidedRubricXBlock(runtime, element) {
         chatMsg.value = "";
         send_message("skip");
     });
+
+    function keep_user_response(user_input)
+    {
+        console.log('=======keep_user_response')
+        console.log(user_input)
+        let phase_id = 1
+        let user_response_div = `<div class="chat-input" style="display: block;">
+                  <textarea id="chat_msg_phase_`+phase_id+`" placeholder="Enter Prompt ... " rows="24" cols="230">`+user_input+`</textarea>
+                </div>`
+        $('#chat-logs').append(user_response_div)
+    }
+
+
+
 
     function type_message(data) {
         chunks = data[4]
@@ -106,7 +124,6 @@ function GuidedRubricXBlock(runtime, element) {
             } else {
                 // Once all chunks are displayed, make the input field visible again
                 if (data[2]){
-                    debugger;
                     question.textContent = data[2];
                     chatLogs.appendChild(question);
                     $('#send-btn').text(data[3])
