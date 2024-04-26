@@ -601,62 +601,78 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             json.dumps(data), content_type="application/json", charset="utf8"
         )
 
-
     @XBlock.handler
     def studio_submit(self, request, _suffix):
-        
         self.phases = json.dumps(json.loads(request.params['phases']))
         self.last_phase_id = request.params["last_phase_id"]
         self.assistant_name = request.params["assistant_name"]
         self.assistant_instructions = request.params["assistant_instructions"]
         self.assistant_model = request.params["assistant_model"]
-        self.knowledge_base = request.params["knowledge_base"].file._name
+        if type(request.params["knowledge_base"]) != str:
+            self.knowledge_base = request.params["knowledge_base"].file._name
         self.completion_message = request.params["completion_message"]
         self.max_tokens_per_user = request.params["max_tokens_per_user"]
-        
 
         manager = AssistantManager()
-
-        manager.create_assistant(
-            name=self.assistant_name,
-            instructions=self.assistant_instructions,
-            tools=[{"type": "retrieval"}]
-        )
-        self.assistant_id = manager.assistant_id
         response = {"result": "success", "errors": []}
 
-        knowledge_base = request.params.get("knowledge_base")
-        if knowledge_base:
+        if self.assistant_id:
             try:
-                
-                package_file = request.params["knowledge_base"].file
-                dest_path_2 = os.path.join(self.extract_folder_base_path, self.knowledge_base)
-                self.storage.save(dest_path_2, package_file)
-                self.zip_file = settings.LMS_ROOT_URL+'/'+'media'+'/'+dest_path_2
-
-                # dest_path_2 = os.path.join(settings.MEDIA_ROOT, self.knowledge_base)
-                # self.storage.save(dest_path_2, package_file)
-
-                # Extract zip file
-                #self.extract_package(package_file)
-                extracted_files = self.extract_package(package_file)
-                # Save the extracted file names in the knowledge base
-            
-                # Upload each extracted file to OpenAI and associate them with the assistant
-                for file_path in extracted_files:
-                    with open(file_path, 'rb') as file:
-                        uploaded_file = client.files.create(file=file, purpose='assistants')
-
-                    # Associate the uploaded file with the assistant
-                    client.beta.assistants.files.create(assistant_id=self.assistant_id, file_id=uploaded_file.id)
-
+                client.beta.assistants.update(
+                    self.assistant_id,
+                    instructions=self.assistant_instructions,
+                    name=self.assistant_name,
+                    tools=[{"type": "retrieval"}],  # Assuming this is the tool configuration
+                    model="gpt-4-turbo-preview"
+                )
+                response["message"] = "Assistant updated successfully."
             except Exception as e:
                 print(e)
-                response["errors"].append("Knowledge base file not provided.")
+                response["errors"].append("Failed to update the assistant.")
+        else:
+            try:
+                manager.create_assistant(
+                    name=self.assistant_name,
+                    instructions=self.assistant_instructions,
+                    tools=[{"type": "retrieval"}]
+                )
+                self.assistant_id = manager.assistant_id
+                response["message"] = "Assistant created successfully."
+            except Exception as e:
+                print(e)
+                response["errors"].append("Failed to create the assistant.")
 
+        # Handling knowledge base upload and association with the assistant
+        if type(request.params["knowledge_base"]) != str:
+            knowledge_base_file = request.params.get("knowledge_base")
+            if knowledge_base_file:
+                try:
+                    package_file = knowledge_base_file.file
+                    dest_path_2 = os.path.join(self.extract_folder_base_path, knowledge_base_file.filename)
+                    self.storage.save(dest_path_2, package_file)
+                    self.zip_file = settings.LMS_ROOT_URL + '/media/' + knowledge_base_file.filename
+
+                    extracted_files = self.extract_package(package_file)
+
+                    for file_path in extracted_files:
+                        with open(file_path, 'rb') as file:
+                            uploaded_file = client.files.create(file=file, purpose='assistants')
+
+                        client.beta.assistants.files.create(assistant_id=self.assistant_id, file_id=uploaded_file.id)
+
+                except Exception as e:
+                    print(e)
+                    response["errors"].append("Knowledge base file not provided.")
+            elif self.zip_file:  # Use previously uploaded file if available
+                try:
+                    # Associate the previously uploaded file with the assistant
+                    uploaded_file = client.files.create(filename=self.knowledge_base, purpose='assistants')
+                    client.beta.assistants.files.create(assistant_id=self.assistant_id, file_id=uploaded_file.id)
+                except Exception as e:
+                    print(e)
+                    response["errors"].append("Failed to associate previously uploaded knowledge base file.")
 
         return self.json_response(response)
-        
 
     
     def extract_package(self, package_file):
