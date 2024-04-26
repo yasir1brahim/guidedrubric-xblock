@@ -30,7 +30,7 @@
         <div class="guided-critical-analysis-body">
             {% if guided_rubric_xblock.zip_file %}
             <div class="micro-ai-btn-primary"> <a
-                    href="{{ window.location.origin }}/media/{{ guided_rubric_xblock.zip_file }}" target="_blank"><button>View PDF</button></a>
+                    href="{{guided_rubric_xblock.zip_file}}" target="_blank"><button>View PDF</button></a>
             </div>
             {% else %}
             <div class="micro-ai-btn-primary"> <a
