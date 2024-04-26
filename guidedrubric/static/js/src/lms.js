@@ -22,6 +22,10 @@ function GuidedRubricXBlock(runtime, element) {
     var handlerUrl = runtime.handlerUrl(element, 'send_message');
 
     function send_message(message) {
+        if (message != "skip")
+        {
+            $('#chat_input_loader').css('display', '')
+        }
         return $.ajax({
             type: "POST",
             url: handlerUrl,
@@ -29,10 +33,11 @@ function GuidedRubricXBlock(runtime, element) {
             contentType:"application/json; charset=utf-8",
             dataType: "json",
         }).done(function(response) {
+            $('#chat_input_loader').css('display', 'none')
             if (response.result === 'success') {
                 if (response.response[1]){
-                    var statusElements = document.getElementsByClassName('status');
-                    statusElements[statusElements.length - 1].textContent = "Status: " + response.response[1];
+                    //var statusElements = document.getElementsByClassName('status');
+                    //statusElements[statusElements.length - 1].textContent = "Status: " + response.response[1];
                 }
                 chatLogs.removeChild(loadingMsg);
                 type_message(response.response);
@@ -46,7 +51,7 @@ function GuidedRubricXBlock(runtime, element) {
         });
     };
     sendBtn.addEventListener('click', function() {
-        let status = document.createElement('div');
+        //let status = document.createElement('div');
         if (!chatMsg.value.trim()) {
             errorMsg.textContent = "You should enter prompt";
             return;
@@ -54,12 +59,12 @@ function GuidedRubricXBlock(runtime, element) {
         document.querySelector('.chat-input').style.display = 'none';
         errorMsg.textContent = "";
         let newMsg = document.createElement('div');
-        newMsg.textContent = "Your Answer: " + chatMsg.value;
+        //newMsg.textContent = "Your Answer: " + chatMsg.value;
         newMsg.classList.add("my-msg");
-        status.classList.add("status");
-        status.textContent = "Status: Pending";
+        //status.classList.add("status");
+        //status.textContent = "Status: Pending";
         chatLogs.appendChild(newMsg);
-        chatLogs.appendChild(status)
+        //chatLogs.appendChild(status)
         chatLogs.appendChild(loadingMsg);
 
         last_attempted_phase_id = $('#last_attempted_phase_id').val()
@@ -83,7 +88,7 @@ function GuidedRubricXBlock(runtime, element) {
     });
 
     function type_message(data) {
-        chunks = data[3]
+        chunks = data[4]
         let aiMsg = document.createElement('div');
         let question = document.createElement('p');
         question.classList.add("questions");
@@ -101,8 +106,10 @@ function GuidedRubricXBlock(runtime, element) {
             } else {
                 // Once all chunks are displayed, make the input field visible again
                 if (data[2]){
+                    debugger;
                     question.textContent = data[2];
                     chatLogs.appendChild(question);
+                    $('#send-btn').text(data[3])
                 }
                 if (data[2] === null) {
                     allQuestions = document.querySelectorAll('.my-msg');

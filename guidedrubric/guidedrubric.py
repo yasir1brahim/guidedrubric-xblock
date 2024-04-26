@@ -86,11 +86,15 @@ class EventHandler(AssistantEventHandler):
       
   @override
   def on_text_delta(self, delta, snapshot):
+    logging.info('=========on_text_delta')
+    logging.info(delta.value)
     if delta.value:
         if self.grade:
             ai_grade.append(delta.value)
         else:
             ai_messages.append(delta.value)
+            logging.info('========append ai_message')
+            logging.info(ai_messages)
       
   def on_tool_call_created(self, tool_call):
     pass
@@ -250,7 +254,11 @@ class AssistantManager:
             )
 
     def run_assistant(self, instructions, grade):
+        logging.info('===========inside run_assistant')
+        logging.info(self.thread)
+        logging.info(self.assistant)
         if self.thread and self.assistant:
+            logging.info('======run_assistant if ==========')
             try:
                 with self.client.beta.threads.runs.create_and_stream(
                     thread_id=self.thread.id,
@@ -262,6 +270,8 @@ class AssistantManager:
                     self.run = stream._AssistantEventHandler__current_run
                     self.process_message()
             except Exception as e:
+                logging.info('==========error')
+                logging.info(e)
                 print(f"Streaming error: {e}")
 
     def process_message(self):
@@ -747,9 +757,11 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         The primary view of the GuidedRubricXBlock, shown to students
         when viewing courses.
         """
+        self.last_attempted_phase_id = 1
         context = {
             "guided_rubric_xblock": self,
-            "next_question": self.get_next_question()
+            "next_question": self.get_next_question(),
+            "button_label": self.get_phase(self.last_attempted_phase_id)['button_label']
         }
         context.update(context or {})
         # template = self.render_template("static/html/lms.html", context)
@@ -851,14 +863,16 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     def handle_interaction(self, user_input):
 
+        AssistantManager.assistant_id = self.assistant_id
+        AssistantManager.thread_id = self.open_ai_thread_id
         manager = AssistantManager()
-        manager.assistant_id = self.assistant_id
+        #manager.assistant_id = self.assistant_id
 
         if not self.open_ai_thread_id:    
             thread_id = manager.create_thread()
             self.open_ai_thread_id = thread_id
         
-        manager.thread_id = self.open_ai_thread_id
+        #manager.thread_id = self.open_ai_thread_id
         
         if  self.last_attempted_phase_id <= self.last_phase_id - 1:
             index = int(self.last_attempted_phase_id)
@@ -874,18 +888,20 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
                 logging.info(self.last_attempted_phase_id)
                 phase = self.get_phase(self.last_attempted_phase_id)
                 question = phase['phase_question']
+                button_label = phase['button_label']
             except:
                 question = None
+                button_label = None
             messages_to_send = ai_messages.copy()
             ai_messages.clear()
-        return hand_intr, hand_gra, question, messages_to_send
+        return hand_intr, hand_gra, question, button_label, messages_to_send
 
     # TO-DO: change this handler to perform your own actions.  You may need more
     # than one handler, or you may not need any handlers at all.
     @XBlock.json_handler
     def send_message(self, data, suffix=""):
         """Send message to OpenAI, and return the response"""
-        #self.last_attempted_phase_id = 1
+        self.last_attempted_phase_id = 1
         user_input = data['message']
         #res = main(user_input)
         res = self.handle_interaction(user_input)

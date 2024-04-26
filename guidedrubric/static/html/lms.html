@@ -1,25 +1,24 @@
-{% comment %} <h1>Guided Critical Analysis</h1>
+<!-- <h1>Guided Critical Analysis</h1>
 <p>In this guided article review, we'll both read the same journal article. Then, you'll be guided through an analysis of the paper. Let's begin by reading the paper!</p>
-<a href="http://up.csail.mit.edu/other-pubs/las2014-pguo-engagement.pdf">View PDF</a>
-<p>This is a **DEMO**</p>
+<a href="http://up.csail.mit.edu/other-pubs/las2014-pguo-engagement.pdf">View PDF</a> -->
+<!-- <p>This is a **DEMO**</p> -->
 <div class="chatgpt_wrapper">
     <div class="chatgpt_block">
         <div class="chatbox">
-            <div id="chat-logs">
+            <!-- <div id="chat-logs">
                 <p class="questions">{{ next_question }}</p>
-            </div>
+            </div> -->
             <div class="chat-input">
                 <span id="error-msg"></span>
                 <label class="label setting-label">Last phase id</label>
                 <input id="last_attempted_phase_id" value="{{ guided_rubric_xblock.last_attempted_phase_id }}"></input>
-                <textarea id="chat-msg" placeholder="Enter Prompt ... " rows="5" cols="230"></textarea>
-                <button id="send-btn">Submit</button>
-                <button id="skip-btn">Skip Question</button> 
+                <!-- <textarea id="chat-msg" placeholder="Enter Prompt ... " rows="5" cols="230"></textarea>
+                <button id="send-btn">Submit</button> -->
+                <!-- <button id="skip-btn">Skip Question</button>  -->
             </div>
         </div>
     </div>
-</div> {% endcomment %}
-
+</div> 
 <div class="gudied-critical-analysis-container">
         <div class="guided-critical-analysis-header">
             <h1>Guided Critical Analysis</h1>
@@ -66,11 +65,11 @@
                 <div class="chatgpt_block">
                     <div class="chatbox">
                         <div id="chat-logs">
-                            <p class="questions">What is your name?</p>
+                            <p class="questions">{{ next_question }}</p>
                         </div>
 
                         <div class="chat-input" style="display: block;" id="prompt-with-loader">
-                            <div class="lds-dual-ring"></div><span id="error-msg"></span>
+                            <div id ="chat_input_loader" class="lds-dual-ring" style="display:none"></div><span id="error-msg"></span>
                             <textarea id="chat-msg" placeholder="Enter Prompt ... " rows="24" cols="230"></textarea>
 
 
@@ -81,7 +80,7 @@
 
 
                         </div>
-                        <div class="micro-ai-btn-primary micro-ai-btn-container"><button id="send-btn">Submit</button>
+                        <div class="micro-ai-btn-primary micro-ai-btn-container"><button id="send-btn">{{button_label}}</button>
                             <button id="skip-btn" class="btn-ghost">Skip Question</button>
                         </div>
                     </div>
