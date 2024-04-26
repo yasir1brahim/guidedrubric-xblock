@@ -56,7 +56,9 @@ function GuidedRubricXBlock(runtime, element) {
     sendBtn.addEventListener('click', function() {
         //let status = document.createElement('div');
         if (!chatMsg.value.trim()) {
-            errorMsg.textContent = "You should enter prompt";
+            // errorMsg.textContent = "You should enter prompt";
+            // return;
+            alert("You should enter prompt")
             return;
         }
         document.querySelector('.chat-input').style.display = 'none';
@@ -81,11 +83,11 @@ function GuidedRubricXBlock(runtime, element) {
         document.querySelector('.chat-input').style.display = 'none';
         errorMsg.textContent = "";
         let newMsg = document.createElement('div');
-        newMsg.textContent = "Your Answer: " + chatMsg.value;
-        status.textContent = "Status: Skip";
+        //newMsg.textContent = "Your Answer: " + chatMsg.value;
+        //status.textContent = "Status: Skip";
         newMsg.classList.add("my-msg");
-        chatLogs.appendChild(newMsg);
-        chatLogs.appendChild(status)
+        //chatLogs.appendChild(newMsg);
+        //chatLogs.appendChild(status)
         chatLogs.appendChild(loadingMsg);
         chatMsg.value = "";
         send_message("skip");
@@ -123,15 +125,18 @@ function GuidedRubricXBlock(runtime, element) {
                 setTimeout(() => displayNextChunk(index + 1), 100); // Adjust delay as needed
             } else {
                 // Once all chunks are displayed, make the input field visible again
-                if (data[2]){
-                    question.textContent = data[2];
-                    chatLogs.appendChild(question);
-                    $('#send-btn').text(data[3])
-                }
-                if (data[2] === null) {
-                    allQuestions = document.querySelectorAll('.my-msg');
-                    lastQuestion = allQuestions[allQuestions.length - 1];
-                    lastQuestion.parentNode.removeChild(lastQuestion);
+                if (data[1] == 'Success' || data[1]==null)
+                {
+                    if (data[2]){
+                        question.textContent = data[2];
+                        chatLogs.appendChild(question);
+                        $('#send-btn').text(data[3])
+                    }
+                    if (data[2] === null) {
+                        allQuestions = document.querySelectorAll('.my-msg');
+                        lastQuestion = allQuestions[allQuestions.length - 1];
+                        lastQuestion.parentNode.removeChild(lastQuestion);
+                    }
                 }
                 document.querySelector('.chat-input').style.display = 'block';
             }
