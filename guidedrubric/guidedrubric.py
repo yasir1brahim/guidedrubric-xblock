@@ -519,6 +519,16 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         logging.info(phases)
         logging.info(type(phases))
         return phases
+    
+    def get_next_question(self):
+        logging.info('=========self')
+        logging.info(self)
+        logging.info(self.last_attempted_phase_id)
+        next_phase_id = self.last_attempted_phase_id
+        for item in self.block_phases:
+            phase_id = int(item.get('phase_id'))
+            if phase_id == next_phase_id:
+                return item.get('phase_question')
 
 
     @staticmethod
@@ -693,13 +703,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
                 logging.info(phase_id)
                 return phase_id
     
-    @property
-    def get_next_question(self):
-        next_phase_id = self.last_attempted_phase_id
-        for item in self.block_phases:
-            phase_id = int(item.get('phase_id'))
-            if phase_id == next_phase_id:
-                return item.get('phase_question')
 
 
         
@@ -720,6 +723,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         """
         context = {
             "guided_rubric_xblock": self,
+            "next_question": self.get_next_question()
         }
         context.update(context or {})
         template = self.render_template("static/html/lms.html", context)
@@ -853,6 +857,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     @XBlock.json_handler
     def send_message(self, data, suffix=""):
         """Send message to OpenAI, and return the response"""
+        #self.last_attempted_phase_id = 1
         user_input = data['message']
         #res = main(user_input)
         res = self.handle_interaction(user_input)
