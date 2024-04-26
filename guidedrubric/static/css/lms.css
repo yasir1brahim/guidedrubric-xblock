@@ -252,6 +252,45 @@ div#prompt-with-loader {
     margin-top: 25px;
 }
 
+.prompt-accordion .accordion {
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+}
+
+.accordion-item-description {
+    color: #56536E;
+    padding: 0px 30px;
+    line-height: 22px
+}
+.open .accordion-item-description{
+    padding-bottom: 20px;
+}
+.accordion-item-description,
+.accordion-item-description h6 {
+    font-size: 13px;
+}
+
+.accordion-item-description h6 {
+    margin-top: 15px
+}
+
+.accordion-item-description ul,
+.accordion-item-description ol {
+    padding-left: 20px !important
+}
+
+.accordion-item-description ul li {
+    margin-bottom: 0px !important;
+    /* line-height:22px; */
+}
+
+.accordion-item-description p {
+    padding: 0px !important;
+    line-height: 22px !important;
+}
+
+.open .accordion-item-header {
+    box-shadow: none !important;
+}
 
 /* For Small Screens */
 @media (max-width: 1024px) {
