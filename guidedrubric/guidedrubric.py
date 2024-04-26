@@ -650,7 +650,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
                     package_file = knowledge_base_file.file
                     dest_path_2 = os.path.join(self.extract_folder_base_path, knowledge_base_file.filename)
                     self.storage.save(dest_path_2, package_file)
-                    self.zip_file = settings.LMS_ROOT_URL + '/media/' + knowledge_base_file.filename
+                    self.zip_file = settings.LMS_ROOT_URL+'/'+'media'+'/'+dest_path_2
 
                     extracted_files = self.extract_package(package_file)
 
