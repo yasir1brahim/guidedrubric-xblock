@@ -54,8 +54,34 @@
                         <div class="accordion-item-description-wrapper">
                             <div class="accordion-item-description">
                                 <hr>
-                                <p>This is the description for Accordion Item 1. This is the description for Accordion
-                                    Item 1.</p>
+                                <p>This is an&nbsp;AI-Tutored Rubric exercise&nbsp;that acts as a tutor guiding a
+                                    student through a shared asset, like an article. It uses the OpenAI Assistants API
+                                    with GPT-4. The&nbsp;questions and rubric&nbsp;are defined by a&nbsp;faculty.
+                                    The&nbsp;feedback and the score&nbsp;are generarated by the&nbsp;AI.</p>
+                                <h6>It can:</h6>
+                                <ol type="1">
+                                    <li>provide feedback on a student's answers to questions about an asset</li>
+                                    <li>roughly "score" a student to determine if they can move on to the next section.
+                                    </li>
+                                </ol>
+                                <p>Scoring is based on a faculty-defined rubric on the backend. These rubrics can be
+                                    simple (i.e. "full points if the student gives a thoughtful answer") or specific
+                                    with different criteria and point thresholds. The faculty also defines a minimum
+                                    pass threshold for each question. The threshold could be as low as zero points to
+                                    pass any answer, or it could be higher.</p>
+                                <h6>Using AI to provide feedback and score like this is a very experimental process.
+                                    Some things to note:</h6>
+                                <ul>
+                                    <li>AIs make mistakes. Users are encourage to skip a question if the AI is not
+                                        understanding them or giving good feedback.</li>
+                                    <li>The AI might say things that it can't do, like "Ask me anything about the
+                                        article". I presume further refinement can reduce these kinds of responses.</li>
+                                    <li>Scoring is highly experimental. At this point, it should mainly be used to gauge
+                                        if a user gave an approximately close answer to what the rubric suggests. It is
+                                        not recommended to show the user the numeric score.</li>
+                                    <li>Initial testing indicates that the AI is a very easy grader. This is probably
+                                        good in this experiment, and it may be refined with different prompting.</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
