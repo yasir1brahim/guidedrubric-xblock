@@ -474,7 +474,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     assistant_id = String(
         display_name=_("Assistant ID"),
-        help=_(""),
+        help=_("This ID will be auto-generated"),
         default="",
         scope=Scope.content,
         edit=False,
@@ -610,7 +610,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
                 package_file = request.params["knowledge_base"].file
                 dest_path_2 = os.path.join(self.extract_folder_base_path, self.knowledge_base)
                 self.storage.save(dest_path_2, package_file)
-                self.zip_file = dest_path_2
+                self.zip_file = settings.LMS_ROOT_URL+'/'+'media'+dest_path_2
 
                 # dest_path_2 = os.path.join(settings.MEDIA_ROOT, self.knowledge_base)
                 # self.storage.save(dest_path_2, package_file)
