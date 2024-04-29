@@ -476,7 +476,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     user_response = Dict(
         scope=Scope.user_state,
-        default="",
+        default={},
     )
 
     assistant_instructions = String(
@@ -552,6 +552,19 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         logging.info(phases)
         logging.info(type(phases))
         return phases
+
+    
+
+    def user_response_details(self):
+        user_response = {}
+        for phase_id, response in self.user_response.items():
+            phase = self.get_phase(int(phase_id))
+            if phase:
+                question = phase['phase_question']
+                user_response.update({phase_id: {'question': question, 'response': response}})
+        
+        return user_response
+
     
     def get_next_question(self):
         logging.info('=========self')
@@ -778,24 +791,36 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         The primary view of the GuidedRubricXBlock, shown to students
         when viewing courses.
         """
-        self.last_attempted_phase_id = 1
-        context = {
+        #self.last_attempted_phase_id = 1
+        #self.user_response = {}
+        logging.info('=======user response')
+        #self.user_response = {1: 'skip'}
+        logging.info(self.user_response)
+        lms_context = {
             "guided_rubric_xblock": self,
             "next_question": self.get_next_question(),
+            'user_response_details': self.user_response_details(),
             "button_label" : "submit"
             # "button_label": self.get_phase(self.last_attempted_phase_id)['button_label'] if self.get_phase(self.last_attempted_phase_id)['button_label'] else "" 
         }
-        context.update(context or {})
+        #context.update(context or {})
+        lms_context.update(context or {})
+        logging.info('+++++++ lms context ++++++')
+        logging.info(lms_context)
+        logging.info('=========user_response')
+        logging.info(self.user_response_details())
+        template = self.render_template("static/html/lms.html", lms_context)
+        frag = Fragment(template)
         # template = self.render_template("static/html/lms.html", context)
         # frag = Fragment(template)
-        frag = Fragment()
+        #frag = Fragment()
 
 
 
 
         # html = self.resource_string("static/html/guidedrubric.html")
         # frag = Fragment(html.format(self=self))
-        frag.add_content(loader.render_template("static/html/lms.html",context))
+        #frag.add_content(loader.render_template("static/html/lms.html",context))
         frag.add_css(self.resource_string("static/css/lms.css"))
         frag.add_javascript(self.resource_string("static/js/src/lms.js"))
         frag.initialize_js('GuidedRubricXBlock')
@@ -925,19 +950,42 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     def send_message(self, data, suffix=""):
         """Send message to OpenAI, and return the response"""
 
-        print("ATTEMPTED IDDD")
-        print(self.last_attempted_phase_id)
-        self.user_response = {}
-        self.last_attempted_phase_id = 1
-        self.user_response[self.last_attempted_phase_id] = data['message']
+        logging.info("========last_attempt id")
+        logging.info(self.last_attempted_phase_id)
+        #self.user_response = {}
+        #self.last_attempted_phase_id = 1
+        # if self.user_response.get(int(self.last_attempted_phase_id)):
+        #     phase_response = self.user_response[int(self.last_attempted_phase_id)]
+        #     phase_response['response'] = data['message']
         user_input = data['message']
         print("============self.user_response===============")
         print(self.user_response)
-        
+        phase_id = int(self.last_attempted_phase_id)
         #res = main(user_input)
         res = self.handle_interaction(user_input)
+        if self.user_response.get(phase_id):
+            user_response = self.user_response
+            # phase_response = user_response[int(self.last_attempted_phase_id)]
+            phase_response = {}
+            phase_response['user_response'] = data['message']
+            phase_response['ai_response'] = res[0]
+            user_response[phase_id] = phase_response
+            self.user_response = user_response
+        else:
+            user_response = self.user_response
+            phase_response = {}
+            phase_response['user_response'] = data['message']
+            phase_response['ai_response'] = res[0]
+            user_response[phase_id] = phase_response
+            self.user_response = user_response
+
+
+
         # self.user_responses[self.last_attempted_phase_id] = data['message']
-        print("resss", res)
+        logging.info("------send_message")
+        logging.info(res[0])
+        logging.info('=========send_message_user_response')
+        logging.info(self.user_response)
         return {'result': 'success' if res else 'failed', 'response': res}
 
     

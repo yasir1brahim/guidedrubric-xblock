@@ -306,3 +306,23 @@ div#prompt-with-loader {
         font-size: 20px;
     }
 }
+
+.chat-input textarea {
+    width: 100%;
+    font-size: 13px;
+    border-radius: 5px;
+    padding: 15px 0;
+    padding-left: 15px;
+    outline: none;
+    box-shadow: none;
+    height: 51px;
+    resize: none;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+    border: none;
+    margin-bottom:25px
+}
+.ai-msg{
+  font-family: "Source Sans Pro", sans-serif;
+  line-height: 1.6;
+  color: rgb(49, 51, 63);
+}
