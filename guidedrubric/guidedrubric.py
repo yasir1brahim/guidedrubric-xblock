@@ -561,7 +561,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             phase = self.get_phase(int(phase_id))
             if phase:
                 question = phase['phase_question']
-                user_response.update({phase_id: {'question': question, 'response': response}})
+                user_response.update({int(phase_id): {'question': question, 'response': response}})
         
         return user_response
 
@@ -796,11 +796,15 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         logging.info('=======user response')
         #self.user_response = {1: 'skip'}
         logging.info(self.user_response)
+        next_phase_id = self.get_next_phase_id()
+        is_last_phase_successful = self.last_attempted_phase_id == next_phase_id
         lms_context = {
             "guided_rubric_xblock": self,
             "next_question": self.get_next_question(),
             'user_response_details': self.user_response_details(),
-            "button_label" : "submit"
+            "button_label" : "submit",
+            "is_last_phase_successful": is_last_phase_successful,
+            "last_attempted_phase_id": self.last_attempted_phase_id
             # "button_label": self.get_phase(self.last_attempted_phase_id)['button_label'] if self.get_phase(self.last_attempted_phase_id)['button_label'] else "" 
         }
         #context.update(context or {})
@@ -811,16 +815,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         logging.info(self.user_response_details())
         template = self.render_template("static/html/lms.html", lms_context)
         frag = Fragment(template)
-        # template = self.render_template("static/html/lms.html", context)
-        # frag = Fragment(template)
-        #frag = Fragment()
-
-
-
-
-        # html = self.resource_string("static/html/guidedrubric.html")
-        # frag = Fragment(html.format(self=self))
-        #frag.add_content(loader.render_template("static/html/lms.html",context))
         frag.add_css(self.resource_string("static/css/lms.css"))
         frag.add_javascript(self.resource_string("static/js/src/lms.js"))
         frag.initialize_js('GuidedRubricXBlock')

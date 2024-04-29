@@ -75,7 +75,7 @@ function GuidedRubricXBlock(runtime, element) {
 
         last_attempted_phase_id = $('#last_attempted_phase_id').val()
 
-        chatMsg.value = "";
+        //chatMsg.value = "";
         send_message(chat_message);
     });
     skipBtn.addEventListener('click', function() {
@@ -97,29 +97,41 @@ function GuidedRubricXBlock(runtime, element) {
     {
         console.log('=======keep_user_response')
         console.log(user_input)
-        let phase_id = 1
-        let user_response_div = `<div class="chat-input" style="display: block;">
-                  <textarea id="chat_msg_phase_`+phase_id+`" placeholder="Enter Prompt ... " rows="24" cols="230">`+user_input+`</textarea>
-                </div>`
-        $('#chat-logs').append(user_response_div)
+        // let phase_id = 1
+        // let user_response_div = `<div class="chat-input" style="display: block;">
+        //           <textarea id="chat_msg_phase_`+phase_id+`" placeholder="Enter Prompt ... " rows="24" cols="230">`+user_input+`</textarea>
+        //         </div>`
+        // $('#chat-logs').append(user_response_div)
     }
 
 
 
 
     function type_message(data) {
+        debugger;
+        console.log('==========removing ai-msg')
+        console.log($('.recent-ai-msg'))
+        // $('.previous-ai-msg').remove();
+        // $('.recent-ai-msg').textContent = ""
+        $('.recent-ai-msg').empty()
+
+
         chunks = data[4]
-        let aiMsg = document.createElement('div');
-        let question = document.createElement('p');
-        question.classList.add("questions");
-        aiMsg.classList.add("ai-msg");
-        chatLogs.appendChild(aiMsg);
+        let aiMsg = $('.recent-ai-msg')
+        // let aiMsg = document.createElement('div');
+        // let question = document.createElement('p');
+        // question.classList.add("questions");
+        // aiMsg.classList.add("ai-msg");
+        // chatLogs.appendChild(aiMsg);
     
         // This function will be called recursively with a delay to simulate streaming
         function displayNextChunk(index) {
             if (index < chunks.length) {
                 // Append the current chunk to the aiMsg element
-                aiMsg.textContent += chunks[index];
+                let current_text = aiMsg.text()
+                let new_text = current_text +  chunks[index];
+                //aiMsg.textContent += chunks[index];
+                aiMsg.text(new_text)
                 
                 // Call this function again for the next chunk after a short delay
                 setTimeout(() => displayNextChunk(index + 1), 100); // Adjust delay as needed
