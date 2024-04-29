@@ -22,6 +22,14 @@ function GuidedRubricXBlock(runtime, element) {
     var handlerUrl = runtime.handlerUrl(element, 'send_message');
 
     function send_message(message) {
+        const completion_token = parseInt(document.getElementById('completion_token').value);
+        const max_tokens_per_user = parseInt(document.getElementById('max_tokens_per_user').value);
+
+        if(completion_token > max_tokens_per_user){
+            alert("You have exceeded the allowed number of tokens. Please contact the course staff")
+        }
+        else{
+
         if (message != "skip")
         {
             $('#chat_input_loader').css('display', '')
@@ -52,7 +60,7 @@ function GuidedRubricXBlock(runtime, element) {
         }).fail(function(error) {
             console.log("An error occurred: ", error);
         });
-    };
+    }};
     sendBtn.addEventListener('click', function() {
         //let status = document.createElement('div');
         if (!chatMsg.value.trim()) {

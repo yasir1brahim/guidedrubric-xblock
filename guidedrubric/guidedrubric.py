@@ -200,7 +200,6 @@ class AssistantManager:
     thread_id = None
     assistant_id = None
 
-
     if 'current_question_index' not in session_state:
         session_state.thread_obj = []
 
@@ -477,6 +476,10 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     user_response = Dict(
         scope=Scope.user_state,
         default="",
+    )
+
+    completion_token = Integer(
+        scope=Scope.user_state
     )
 
     assistant_instructions = String(
@@ -925,19 +928,24 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     def send_message(self, data, suffix=""):
         """Send message to OpenAI, and return the response"""
 
-        print("ATTEMPTED IDDD")
-        print(self.last_attempted_phase_id)
         self.user_response = {}
         self.last_attempted_phase_id = 1
         self.user_response[self.last_attempted_phase_id] = data['message']
         user_input = data['message']
-        print("============self.user_response===============")
-        print(self.user_response)
-        
-        #res = main(user_input)
         res = self.handle_interaction(user_input)
-        # self.user_responses[self.last_attempted_phase_id] = data['message']
-        print("resss", res)
+        thread_messages = client.beta.threads.messages.list(self.open_ai_thread_id,
+                                                            order='desc',
+                                                            limit=1)
+        latest_message = thread_messages.data[0]
+        run_id = latest_message.run_id
+        runs = client.beta.threads.runs.retrieve(
+        thread_id=self.open_ai_thread_id,
+        run_id=run_id
+        )
+        completion_tokens = runs.usage.completion_tokens
+        self.completion_token += completion_tokens
+        print("COMPLETION TOKENSS", self.completion_token)
+
         return {'result': 'success' if res else 'failed', 'response': res}
 
     
