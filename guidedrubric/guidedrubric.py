@@ -882,7 +882,10 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     
 
     def handle_assistant_grading(self, index, manager):
-
+        phase = self.get_phase(self.last_attempted_phase_id)
+        if not phase['scored_question']:
+            self.last_attempted_phase_id = self.get_next_phase_id()
+            return "Success"
         instructions = self.build_instructions(index, True)
         manager.run_assistant(instructions, True)
 
