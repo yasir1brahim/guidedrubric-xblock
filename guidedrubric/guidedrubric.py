@@ -808,11 +808,11 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             if int(item.get('phase_id')) == phase_id:
                 phase = item
                 break
-        if graded_step:
-            if phase.get('scored_question', None):
-                compiled_instructions = """Please provide a score for the previous user message in this thread. Use the following rubric:
-                """ + phase["rubric"] + """
-                Please output your response as JSON, using this format: { "[criteria 1]": "[score 1]", "[criteria 2]": "[score 2]", "total": "[total score]" }"""
+        if graded_step and phase.get('scored_question', None):
+            # if phase.get('scored_question', None):
+            compiled_instructions = """Please provide a score for the previous user message in this thread. Use the following rubric:
+            """ + phase["rubric"] + """
+            Please output your response as JSON, using this format: { "[criteria 1]": "[score 1]", "[criteria 2]": "[score 2]", "total": "[total score]" }"""
         else:
             compiled_instructions = phase["ai_instructions"] + phase["phase_question"]
 
@@ -896,7 +896,8 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         
         #manager.thread_id = self.open_ai_thread_id
         
-        if  self.last_attempted_phase_id <= self.last_phase_id - 1:
+        # if  self.last_attempted_phase_id <= self.last_phase_id - 1:
+        if True:
             index = int(self.last_attempted_phase_id)
             if user_input == "skip":
                 self.handle_skip()
@@ -926,10 +927,16 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
         print("ATTEMPTED IDDD")
         print(self.last_attempted_phase_id)
+        self.user_response = {}
         self.last_attempted_phase_id = 1
+        self.user_response[self.last_attempted_phase_id] = data['message']
         user_input = data['message']
+        print("============self.user_response===============")
+        print(self.user_response)
+        
         #res = main(user_input)
         res = self.handle_interaction(user_input)
+        # self.user_responses[self.last_attempted_phase_id] = data['message']
         print("resss", res)
         return {'result': 'success' if res else 'failed', 'response': res}
 
