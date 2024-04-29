@@ -338,7 +338,7 @@ def extract_score(text):
     
     # Use regex to find the score pattern in the text
     match = re.search(pattern, text)
-    
+
     # If a match is found, return the score, otherwise return None
     if match:
         return int(match.group(1))
@@ -840,7 +840,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         
         # Use regex to find the score pattern in the text
         match = re.search(pattern, text)
-        
+
         # If a match is found, return the score, otherwise return None
         if match:
             return int(match.group(1))
@@ -898,7 +898,12 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         
         # if  self.last_attempted_phase_id <= self.last_phase_id - 1:
         if True:
-            index = int(self.last_attempted_phase_id)
+            hand_intr = None
+            hand_gra = None
+            if not self.last_attempted_phase_id:
+                return hand_intr, hand_gra, None, None, [], self.completion_message
+            else:
+                index = int(self.last_attempted_phase_id)
             if user_input == "skip":
                 self.handle_skip()
                 hand_intr = None
@@ -917,7 +922,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
                 button_label = None
             messages_to_send = ai_messages.copy()
             ai_messages.clear()
-        return hand_intr, hand_gra, question, button_label, messages_to_send
+        return hand_intr, hand_gra, question, button_label, messages_to_send, self.completion_message
 
     # TO-DO: change this handler to perform your own actions.  You may need more
     # than one handler, or you may not need any handlers at all.
@@ -928,7 +933,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         print("ATTEMPTED IDDD")
         print(self.last_attempted_phase_id)
         self.user_response = {}
-        self.last_attempted_phase_id = 1
+        # self.last_attempted_phase_id = 1
         self.user_response[self.last_attempted_phase_id] = data['message']
         user_input = data['message']
         print("============self.user_response===============")
