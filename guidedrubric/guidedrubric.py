@@ -200,7 +200,6 @@ class AssistantManager:
     thread_id = None
     assistant_id = None
 
-
     if 'current_question_index' not in session_state:
         session_state.thread_obj = []
 
@@ -338,7 +337,7 @@ def extract_score(text):
     
     # Use regex to find the score pattern in the text
     match = re.search(pattern, text)
-    
+
     # If a match is found, return the score, otherwise return None
     if match:
         return int(match.group(1))
@@ -477,6 +476,10 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     user_response = Dict(
         scope=Scope.user_state,
         default={},
+    )
+
+    completion_token = Integer(
+        scope=Scope.user_state
     )
 
     assistant_instructions = String(
@@ -859,7 +862,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         
         # Use regex to find the score pattern in the text
         match = re.search(pattern, text)
-        
+
         # If a match is found, return the score, otherwise return None
         if match:
             return int(match.group(1))
@@ -876,7 +879,10 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     
 
     def handle_assistant_grading(self, index, manager):
-
+        phase = self.get_phase(self.last_attempted_phase_id)
+        if not phase['scored_question']:
+            self.last_attempted_phase_id = self.get_next_phase_id()
+            return "Success"
         instructions = self.build_instructions(index, True)
         manager.run_assistant(instructions, True)
 
@@ -917,7 +923,12 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         
         # if  self.last_attempted_phase_id <= self.last_phase_id - 1:
         if True:
-            index = int(self.last_attempted_phase_id)
+            hand_intr = None
+            hand_gra = None
+            if not self.last_attempted_phase_id:
+                return hand_intr, hand_gra, None, None, [], self.completion_message
+            else:
+                index = int(self.last_attempted_phase_id)
             if user_input == "skip":
                 self.handle_skip()
                 hand_intr = None
@@ -936,7 +947,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
                 button_label = None
             messages_to_send = ai_messages.copy()
             ai_messages.clear()
-        return hand_intr, hand_gra, question, button_label, messages_to_send
+        return hand_intr, hand_gra, question, button_label, messages_to_send, self.completion_message
 
     # TO-DO: change this handler to perform your own actions.  You may need more
     # than one handler, or you may not need any handlers at all.
@@ -944,18 +955,11 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     def send_message(self, data, suffix=""):
         """Send message to OpenAI, and return the response"""
 
-        logging.info("========last_attempt id")
-        logging.info(self.last_attempted_phase_id)
-        #self.user_response = {}
-        #self.last_attempted_phase_id = 1
-        # if self.user_response.get(int(self.last_attempted_phase_id)):
-        #     phase_response = self.user_response[int(self.last_attempted_phase_id)]
-        #     phase_response['response'] = data['message']
+        self.user_response = {}
+        self.last_attempted_phase_id = 1
+        self.user_response[self.last_attempted_phase_id] = data['message']
         user_input = data['message']
-        print("============self.user_response===============")
-        print(self.user_response)
         phase_id = int(self.last_attempted_phase_id)
-        #res = main(user_input)
         res = self.handle_interaction(user_input)
         if self.user_response.get(phase_id):
             user_response = self.user_response
@@ -972,14 +976,21 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             phase_response['ai_response'] = res[0]
             user_response[phase_id] = phase_response
             self.user_response = user_response
+        
 
+        thread_messages = client.beta.threads.messages.list(self.open_ai_thread_id,
+                                                            order='desc',
+                                                            limit=1)
+        latest_message = thread_messages.data[0]
+        run_id = latest_message.run_id
+        runs = client.beta.threads.runs.retrieve(
+        thread_id=self.open_ai_thread_id,
+        run_id=run_id
+        )
+        completion_tokens = runs.usage.completion_tokens
+        self.completion_token += completion_tokens
+        print("COMPLETION TOKENSS", self.completion_token)
 
-
-        # self.user_responses[self.last_attempted_phase_id] = data['message']
-        logging.info("------send_message")
-        logging.info(res[0])
-        logging.info('=========send_message_user_response')
-        logging.info(self.user_response)
         return {'result': 'success' if res else 'failed', 'response': res}
 
     

@@ -7,6 +7,17 @@
     margin: 0 auto
 }
 
+p.notification-btm {
+    margin-top: 1rem;
+    font-size:16px;
+    padding:17.5px;
+    border-radius:.5rem;
+    max-width:700px;
+    width:100%;
+    background-color:   rgba(33, 195, 84, 0.1);
+    color:  rgb(23, 114, 51);
+}
+
 .guided-critical-analysis-header {
     background: url("https://i.ibb.co/mvFqcjX/title-bg.jpg");
     background-position: center;

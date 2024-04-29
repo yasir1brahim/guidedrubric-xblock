@@ -15,13 +15,21 @@ function GuidedRubricXBlock(runtime, element) {
     overlay.setAttribute("id", "overlay-loader");
     loader.setAttribute("class", "lds-dual-ring");
     overlay.appendChild(loader);
-    loadingMsg.classList.add("loading");
-    loadingMsg.appendChild(loader);
+    // loadingMsg.classList.add("loading");
+    // loadingMsg.appendChild(loader);
 
     // Handlers
     var handlerUrl = runtime.handlerUrl(element, 'send_message');
 
     function send_message(message) {
+        const completion_token = parseInt(document.getElementById('completion_token').value);
+        const max_tokens_per_user = parseInt(document.getElementById('max_tokens_per_user').value);
+
+        if(completion_token > max_tokens_per_user){
+            alert("You have exceeded the allowed number of tokens. Please contact the course staff")
+        }
+        else{
+
         if (message != "skip")
         {
             $('#chat_input_loader').css('display', '')
@@ -52,7 +60,7 @@ function GuidedRubricXBlock(runtime, element) {
         }).fail(function(error) {
             console.log("An error occurred: ", error);
         });
-    };
+    }};
     sendBtn.addEventListener('click', function() {
         //let status = document.createElement('div');
         if (!chatMsg.value.trim()) {
@@ -76,6 +84,7 @@ function GuidedRubricXBlock(runtime, element) {
         last_attempted_phase_id = $('#last_attempted_phase_id').val()
 
         //chatMsg.value = "";
+        $('.micro-ai-btn-container').css('display', 'none')
         send_message(chat_message);
     });
     skipBtn.addEventListener('click', function() {
@@ -131,13 +140,14 @@ function GuidedRubricXBlock(runtime, element) {
                 let current_text = aiMsg.text()
                 let new_text = current_text +  chunks[index];
                 //aiMsg.textContent += chunks[index];
+                $('.chat-input').css('display', 'none');
                 aiMsg.text(new_text)
                 
                 // Call this function again for the next chunk after a short delay
                 setTimeout(() => displayNextChunk(index + 1), 100); // Adjust delay as needed
             } else {
                 // Once all chunks are displayed, make the input field visible again
-                if (data[1] == 'Success' || data[1]==null)
+                if (data[1] == 'Success' || data[1]==null || data[1]== 'Fail')
                 {
                     if (data[2]){
                         question.textContent = data[2];
@@ -150,7 +160,18 @@ function GuidedRubricXBlock(runtime, element) {
                         lastQuestion.parentNode.removeChild(lastQuestion);
                     }
                 }
-                document.querySelector('.chat-input').style.display = 'block';
+                if (data[3] == null){
+                    $('.micro-ai-btn-container').css('display', 'none');
+                    $('.chat-input').css('display', 'none');
+                    let p = document.createElement('p');
+                    p.classList.add('notification-btm');
+                    p.textContent = data[5];
+                    document.querySelectorAll('.chatgpt_wrapper')[document.querySelectorAll('.chatgpt_wrapper').length - 1].appendChild(p);
+                } else{
+                    $('.chat-input').css('display', 'block');
+                    $('.micro-ai-btn-container').css('display', '')
+                }
+                // document.querySelector('.chat-input').style.display = 'block';
             }
         }
     
