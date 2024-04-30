@@ -477,6 +477,12 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         scope=Scope.user_state,
         default={},
     )
+    
+    is_staff = Boolean(
+        display_name=_("Is Staff"),
+        default=False,
+        scope=Scope.settings,
+    )
 
     completion_token = Integer(
         scope=Scope.user_state
@@ -799,11 +805,22 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         logging.info('=======user response')
         #self.user_response = {1: 'skip'}
         logging.info(self.user_response)
+        user_service = self.runtime.service(self, 'user')
+        xb_user = user_service.get_current_user()
+        user_role = xb_user.opt_attrs['edx-platform.user_is_staff']
+        print("xb_user.opt_attrs['edx-platform.user_is_staff']",user_role)
+        is_user_staff = False
+        if user_role:
+            is_user_staff = True
+        else:
+            is_user_staff = False
+
         lms_context = {
             "guided_rubric_xblock": self,
             "next_question": self.get_next_question(),
             'user_response_details': self.user_response_details(),
-            "button_label" : "submit"
+            "button_label" : "submit",
+            'is_user_staff':is_user_staff
             # "button_label": self.get_phase(self.last_attempted_phase_id)['button_label'] if self.get_phase(self.last_attempted_phase_id)['button_label'] else "" 
         }
         #context.update(context or {})
