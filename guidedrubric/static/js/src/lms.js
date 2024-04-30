@@ -180,6 +180,93 @@ function GuidedRubricXBlock(runtime, element) {
         $('#ai-msg').css('display', 'none')
     }
 
+    // Student reports
+    var reportElement = $(element).find(".scorm-reports .report");
+    function initReports() {
+        if (reportElement.length === 0){
+            return;
+        }
+        $(element).find("button.clear-data").on("click", function () {
+            viewReports();
+        });
+        $(element).find("button.clear-data").on("click", function () {
+            reloadReport();
+        });
+
+        $.ui.autocomplete(
+            {
+                source: searchStudents,
+                select: setStudentId,
+            }, $(element).find(".scorm-reports input.search-students")
+        );
+    }
+    function searchStudents(request, response) {
+        var url = runtime.handlerUrl(element, 'scorm_search_students');
+        console.log("url ===>", url);
+        $.ajax({
+            url: url,
+            data: {
+                'id': request.term
+            },
+        }).success(function (data) {
+            console.log("data",data);
+            if (data.length === 0) {
+                noStudentFound()
+            }
+            else if(data.length > 0){
+                StudentFound()
+            }
+            response(data);
+        }).fail(function () {
+            noStudentFound()
+            response([])
+        });
+    }
+    function noStudentFound() {
+        reportElement.html("no student found");
+        $(element).find(".reload-report").addClass("reports-togglable-off");
+    }
+    function StudentFound() {
+        reportElement.html("Student found");
+        $(element).find(".reload-report").addClass("reports-togglable-off");
+    }
+    function viewReports() {
+        // Display reports on button click
+        $(element).find(".reports-togglable").toggleClass("reports-togglable-off");
+    }
+    var studentId = null;
+    function viewReport(event, ui) {
+        studentId = ui.item.data.student_id;
+        getReport(studentId);
+    }
+
+    function setStudentId(event, ui){
+        studentId = ui.item.data.student_id;
+    }
+    function reloadReport() {
+        getReport(studentId)
+    }
+    function getReport(studentId) {
+        var getReportUrl = runtime.handlerUrl(element, 'scorm_get_student_state');
+        $.ajax({
+            url: getReportUrl,
+            data: {
+                'id': studentId
+            },
+        }).success(function (response) {
+            console.log(response);
+            let completion_token = response.response_metadata.completion_token
+            $('#completion_token').val(completion_token)     
+            console.log("SUCCESS");
+        }).fail(function () {
+            console.log("FAIL");
+        }).complete(function () {
+            $(element).find(".reload-report").removeClass("reports-togglable-off");
+        });
+        reportElement.html("Cleared user data");
+        
+    }
+
 
 
 
@@ -248,6 +335,7 @@ function GuidedRubricXBlock(runtime, element) {
         displayNextChunk(0);
     }
     $(function ($) {
+        initReports();
         /* Here's where you'd do things on page load. */
     });
 
