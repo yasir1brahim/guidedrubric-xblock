@@ -56,10 +56,15 @@ function GuidedRubricXBlock(runtime, element) {
                 if (response.response_metadata['is_attempted_phase_successful'] == true)
                 {
                     keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
+                    type_message(response.response);
                     hide_prompt()
                     update_prompt_for_new_question(response.response[2])
                 }
-                type_message(response.response);
+                else
+                {
+                    type_message(response.response);  
+                }
+                //type_message(response.response);
             } else {
                 alert("You've reached the end of the exercise. Hope you learned something!");
                 chatLogs.removeChild(loadingMsg);
@@ -138,6 +143,8 @@ function GuidedRubricXBlock(runtime, element) {
         $('#chat-logs p').text(question)
         $('#chat-msg').val("")
         $('#ai-msg').text("")
+        $('.recent-ai-msg').removeClass('recent-ai-msg')
+        $('#ai-msg').addClass('recent-ai-msg')
         $('#chat-logs').css('display', '')
         $('#chat-input').css('display', '')
         $('#ai-msg').css('display', '')
