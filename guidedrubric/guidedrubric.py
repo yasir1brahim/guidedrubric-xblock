@@ -465,7 +465,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     last_attempted_phase_id = Integer(
         scope=Scope.user_state,
-        default=0,
+        default=1,
     )
 
     open_ai_thread_id = String(
@@ -486,7 +486,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     completion_token = Integer(
         display_name=_("Total Prompt Attempts For User"),
-        scope=Scope.settings,
+        scope=Scope.user_state,
         default=0,
         help=_("Define how many time a user can make prompts")
     )
@@ -810,6 +810,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         when viewing courses.
         """
         #self.last_attempted_phase_id = 1
+        self.completion_token = 0
         #self.user_response = {}
         logging.info('=======user response')
         #self.user_response = {1: 'skip'}
