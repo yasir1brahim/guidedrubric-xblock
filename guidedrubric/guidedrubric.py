@@ -2,24 +2,21 @@
 
 from typing_extensions import override
 from django.conf import settings
+from django.contrib.auth.models import User
 from django.template import Context, Template
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db.models import Q
-from django.utils import timezone
 from django.utils.module_loading import import_string
 from webob import Response
 from six import string_types
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
 from xblock.completable import CompletableXBlockMixin
-from xblock.exceptions import JsonHandlerError
 from xblock.fields import Scope, String, Float, Boolean, Dict, DateTime, Integer
 import zipfile
 import os
 import logging
-import re
-import json
 import pkg_resources
 import openai
 from openai import AssistantEventHandler
@@ -27,23 +24,17 @@ from dotenv import load_dotenv
 import time
 import re
 import json
-from django.conf import settings
 from xblock.fields import Scope, String, Integer
 from django.template import Context, Template
 from xblock.completable import CompletableXBlockMixin
 from webob import Response
 import logging
-import xml.etree.ElementTree as ET
-from django.core.files.uploadedfile import InMemoryUploadedFile
-
 from xblock.completable import CompletableXBlockMixin
 from webob import Response
 import logging
 import xml.etree.ElementTree as ET
-from django.core.files.uploadedfile import InMemoryUploadedFile
-import tempfile
-import shutil
 import logging
+
 logger = logging.getLogger(__name__)
 
 from xblockutils.resources import ResourceLoader
@@ -807,11 +798,71 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         return self.xblock_settings.get("LOCATION", default_scorm_location)
 
     
+    @XBlock.handler
+    def scorm_search_students(self, data, _suffix):
+        print("=============scorm_search_students===========")
+        """
+        Search enrolled students by username/email.
+        """
+        query = data.params.get("id", "")
+        print("query", query)
+        enrollments = (
+            CourseEnrollment.objects.filter(
+                is_active=True,
+                course=self.runtime.course_id,
+            )
+            .select_related("user")
+            .order_by("user__username")
+        )
+        print("enrollments", enrollments)
+        if query:
+            enrollments = enrollments.filter(
+                Q(user__username__startswith=query) | Q(user__email__startswith=query)
+            )
+            print("enrollments====>", enrollments)
+        # The format of each result is dictated by the autocomplete js library:
+        # https://github.com/dyve/jquery-autocomplete/blob/master/doc/jquery.autocomplete.txt
+        return self.json_response(
+            [
+                {
+                    "data": {"student_id": enrollment.user.id},
+                    "value": f"{enrollment.user.username} ({enrollment.user.email})"
+                }
+                for enrollment in enrollments[:20]
+            ]
+        )
+
+    @XBlock.handler
+    def scorm_get_student_state(self, data, _suffix):
+        print("scorm_get_student_state")
+        user_id = data.params.get("id")
+        try:
+            user_id = int(user_id)
+        except (TypeError, ValueError):
+            return Response(
+                body=f"Invalid 'id' parameter {user_id}", status=400
+            )
+        try:
+            user = User.objects.get(id=user_id)
+            if user:
+                print("SELF COMPLETION TOKEN", self.completion_token)
+                self.completion_token = 0
+        except Exception as e:
+            print(e)
+        
+        response_metadata = {'completion_token': self.completion_token}
+        print("COMPLETION TOKENSS", self.completion_token)
+
+        return self.json_response({'result': 'success','response_metadata':response_metadata})
+
+    
+    
     def student_view(self, context=None):
         """
         The primary view of the GuidedRubricXBlock, shown to students
         when viewing courses.
         """
+<<<<<<< HEAD
         if len(self.user_response.keys()) == 0:
             try:
                 self.last_attempted_phase_id = int(self.block_phases[0]['phase_id'])
@@ -820,8 +871,14 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         is_initial_phase = True
         if len(self.user_response.keys()) > 0:
             is_initial_phase = False
+=======
+        # if self.last_attempted_phase_id == 7 and not self.is_last_phase_successful:
+        #     pass
+        # else:
+        #     self.last_attempted_phase_id = 1
+>>>>>>> 45f84e334948000344e32040024ab49ae184eaed
         #self.completion_token = 0
-        #self.user_response = {}
+            #self.user_response = {}
         logging.info('=======user_response1')
         #self.user_response = {1: 'skip'}
         logging.info(self.user_response)

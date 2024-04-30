@@ -129,7 +129,7 @@
                             </div>
                             
                             
-                            <div class="chat-input" style="display: block;" id="prompt-with-loader">
+                            <div class="chat-input" style="display: block;" id="prompt-with-loader-{{phase_id}}">
                                 <textarea id="chat-msg-{{phase_id}}" rows="24" cols="230">{{ response.response.user_response }}</textarea>
                             </div>
                             <div id="ai-msg-{{ phase_id }}" class="ai-msg">{{ response.response.ai_response }}</div>
@@ -164,3 +164,19 @@
             </div>
         </div>
     </div>
+
+{% if is_user_staff %}
+<div class="scorm-reports">
+      <span class="reports-togglable reports-togglable-off">
+        <input
+          type="text"
+          placeholder="Student username or email"
+          class="search-students"
+        />
+        <button class="clear-data" alt="reload report">Clear Student Attempts</button>
+        <div class="report"></div>
+      </span>
+    </div>
+    {% endif %}
+  </div>
+</div>

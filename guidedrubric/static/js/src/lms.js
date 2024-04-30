@@ -76,6 +76,7 @@ function GuidedRubricXBlock(runtime, element) {
     }};
     sendBtn.addEventListener('click', function() {
         //let status = document.createElement('div');
+        let chatMsg = document.getElementById('chat-msg');
         if (!chatMsg.value.trim()) {
             // errorMsg.textContent = "You should enter prompt";
             // return;
@@ -130,7 +131,7 @@ function GuidedRubricXBlock(runtime, element) {
         <p class="questions">`+attempted_phase_question+`</p>
         </div>
         
-        <div class="chat-input" style="display: block;" id="prompt-with-loader">
+        <div class="chat-input" style="display: block;" id="prompt-with-loader-`+phase_id+`">
             <textarea id="chat-msg-`+phase_id+`" rows="24" cols="230">`+user_input+`</textarea>
         </div>
         <div id="ai-msg-`+phase_id+`" class="ai-msg recent-ai-msg">`+ai_response+`</div>`
@@ -140,6 +141,28 @@ function GuidedRubricXBlock(runtime, element) {
 
     function update_prompt_for_new_question(question)
     {
+        // $('#chatbox-history #chat-logs').remove()
+        // $('#chatbox-history #prompt-with-loader').remove()
+        // $('#chatbox-history #ai-msg').remove()
+
+        $('#chat-logs').remove()
+        $('#prompt-with-loader').remove()
+        $('#ai-msg').remove()
+        
+        var new_prompt_div = `<div id="chat-logs">
+                                <p class="questions">`+question+`</p>
+                            </div>
+
+        <div class="chat-input" style="display: block;" id="prompt-with-loader">
+            <div id ="chat_input_loader" class="lds-dual-ring" style="display:none"></div><span id="error-msg"></span>
+            <textarea id="chat-msg"  placeholder="Enter Prompt ... " rows="24" cols="230"></textarea>
+        </div>
+        <div id="ai-msg" class="ai-msg recent-ai-msg"></div>`
+        // $('.chatbox').append(new_prompt_div)
+        $(new_prompt_div).insertBefore('.micro-ai-btn-primary.micro-ai-btn-container')
+
+
+        //
         $('#chat-logs p').text(question)
         $('#chat-msg').val("")
         $('#ai-msg').text("")
@@ -155,6 +178,93 @@ function GuidedRubricXBlock(runtime, element) {
         $('#chat-logs').css('display', 'none')
         $('#chat-input').css('display', 'none')
         $('#ai-msg').css('display', 'none')
+    }
+
+    // Student reports
+    var reportElement = $(element).find(".scorm-reports .report");
+    function initReports() {
+        if (reportElement.length === 0){
+            return;
+        }
+        $(element).find("button.clear-data").on("click", function () {
+            viewReports();
+        });
+        $(element).find("button.clear-data").on("click", function () {
+            reloadReport();
+        });
+
+        $.ui.autocomplete(
+            {
+                source: searchStudents,
+                select: setStudentId,
+            }, $(element).find(".scorm-reports input.search-students")
+        );
+    }
+    function searchStudents(request, response) {
+        var url = runtime.handlerUrl(element, 'scorm_search_students');
+        console.log("url ===>", url);
+        $.ajax({
+            url: url,
+            data: {
+                'id': request.term
+            },
+        }).success(function (data) {
+            console.log("data",data);
+            if (data.length === 0) {
+                noStudentFound()
+            }
+            else if(data.length > 0){
+                StudentFound()
+            }
+            response(data);
+        }).fail(function () {
+            noStudentFound()
+            response([])
+        });
+    }
+    function noStudentFound() {
+        reportElement.html("no student found");
+        $(element).find(".reload-report").addClass("reports-togglable-off");
+    }
+    function StudentFound() {
+        reportElement.html("Student found");
+        $(element).find(".reload-report").addClass("reports-togglable-off");
+    }
+    function viewReports() {
+        // Display reports on button click
+        $(element).find(".reports-togglable").toggleClass("reports-togglable-off");
+    }
+    var studentId = null;
+    function viewReport(event, ui) {
+        studentId = ui.item.data.student_id;
+        getReport(studentId);
+    }
+
+    function setStudentId(event, ui){
+        studentId = ui.item.data.student_id;
+    }
+    function reloadReport() {
+        getReport(studentId)
+    }
+    function getReport(studentId) {
+        var getReportUrl = runtime.handlerUrl(element, 'scorm_get_student_state');
+        $.ajax({
+            url: getReportUrl,
+            data: {
+                'id': studentId
+            },
+        }).success(function (response) {
+            console.log(response);
+            let completion_token = response.response_metadata.completion_token
+            $('#completion_token').val(completion_token)     
+            console.log("SUCCESS");
+        }).fail(function () {
+            console.log("FAIL");
+        }).complete(function () {
+            $(element).find(".reload-report").removeClass("reports-togglable-off");
+        });
+        reportElement.html("Cleared user data");
+        
     }
 
 
@@ -225,6 +335,7 @@ function GuidedRubricXBlock(runtime, element) {
         displayNextChunk(0);
     }
     $(function ($) {
+        initReports();
         /* Here's where you'd do things on page load. */
     });
 
