@@ -862,7 +862,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         The primary view of the GuidedRubricXBlock, shown to students
         when viewing courses.
         """
-<<<<<<< HEAD
         if len(self.user_response.keys()) == 0:
             try:
                 self.last_attempted_phase_id = int(self.block_phases[0]['phase_id'])
@@ -871,12 +870,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         is_initial_phase = True
         if len(self.user_response.keys()) > 0:
             is_initial_phase = False
-=======
-        # if self.last_attempted_phase_id == 7 and not self.is_last_phase_successful:
-        #     pass
-        # else:
-        #     self.last_attempted_phase_id = 1
->>>>>>> 45f84e334948000344e32040024ab49ae184eaed
         #self.completion_token = 0
             #self.user_response = {}
         logging.info('=======user_response1')
