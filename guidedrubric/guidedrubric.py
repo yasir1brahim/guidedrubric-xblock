@@ -485,7 +485,8 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     )
 
     completion_token = Integer(
-        scope=Scope.user_state,
+        display_name=_("Total Prompt Attempts For User"),
+        scope=Scope.settings,
         default=0,
         help=_("Define how many time a user can make prompts")
     )
@@ -536,9 +537,9 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     )
 
     max_tokens_per_user = Integer(
-        display_name=_("Tokens"),
+        display_name=_("Max Attempts Per User"),
         help=_("Max Tokens Per User"),
-        default="",
+        default=0,
         scope=Scope.settings,
 
     )
@@ -643,6 +644,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     @XBlock.handler
     def studio_submit(self, request, _suffix):
+        print("REQUEST PARAMS", request.params)
         self.phases = json.dumps(json.loads(request.params['phases']))
         self.last_phase_id = request.params["last_phase_id"]
         self.assistant_name = request.params["assistant_name"]
