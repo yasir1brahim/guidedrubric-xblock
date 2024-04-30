@@ -536,6 +536,9 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     )
 
 
+    is_last_phase_successful = Boolean(default=False, scope=Scope.user_state)
+
+
     @property
     def block_phases(self):
         logging.info('==========phases property')
@@ -800,13 +803,17 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         #self.user_response = {1: 'skip'}
         logging.info(self.user_response)
         next_phase_id = self.get_next_phase_id()
-        is_last_phase_successful = self.last_attempted_phase_id == next_phase_id
+        self.is_last_phase_successful = True
+        phase = self.get_phase(self.last_attempted_phase_id)
+        button_label = ''
+        if phase:
+            button_label = phase['button_label']
         lms_context = {
             "guided_rubric_xblock": self,
             "next_question": self.get_next_question(),
             'user_response_details': self.user_response_details(),
-            "button_label" : "submit",
-            "is_last_phase_successful": is_last_phase_successful,
+            "button_label" : button_label,
+            "is_last_phase_successful": self.is_last_phase_successful,
             "last_attempted_phase_id": self.last_attempted_phase_id
             # "button_label": self.get_phase(self.last_attempted_phase_id)['button_label'] if self.get_phase(self.last_attempted_phase_id)['button_label'] else "" 
         }
@@ -882,6 +889,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         phase = self.get_phase(self.last_attempted_phase_id)
         if not phase['scored_question']:
             self.last_attempted_phase_id = self.get_next_phase_id()
+            self.is_last_phase_successful = True
             return "Success"
         instructions = self.build_instructions(index, True)
         manager.run_assistant(instructions, True)
@@ -899,8 +907,10 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             #session_state['current_question_index'] += 1
             self.last_attempted_phase_id = self.get_next_phase_id()
             phase_state = "Success"
+            self.is_last_phase_successful = True
         else:
             phase_state = "Fail"
+            self.is_last_phase_successful = False
         return phase_state
 
 
