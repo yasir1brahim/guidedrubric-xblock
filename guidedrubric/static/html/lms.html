@@ -96,8 +96,8 @@
                     <div class="chatbox">
                         <input type="hidden" id="last_attempted_phase_id" value="{{ last_attempted_phase_id }}"></input>
                         <input type="hidden" id="is_last_phase_successful" value="{{ is_last_phase_successful }}"></input>
+                        <div id="chatbox-history">
                         {% for phase_id, response in user_response_details.items %}
-                            
 
                         {% if phase_id == last_attempted_phase_id and not is_last_phase_successful %}
                                 <div id="chat-logs">
@@ -108,7 +108,7 @@
                                     <div id ="chat_input_loader" class="lds-dual-ring" style="display:none"></div><span id="error-msg"></span>
                                     <textarea id="chat-msg"  rows="24" cols="230">{{ response.response.user_response }}</textarea>
                                 </div>
-                                <div id="ai-msg-{{ phase_id }}" class="ai-msg recent-ai-msg">{{ response.response.ai_response }}</div>
+                                <div id="ai-msg" class="ai-msg recent-ai-msg">{{ response.response.ai_response }}</div>
                         
 
                         {% else %}
@@ -126,8 +126,11 @@
                         {% endif %}
 
                         {% endfor %}
+
+
+                        </div>
                         
-                        {% if is_last_phase_successful %}
+                        {% if is_last_phase_successful or last_attempted_phase_id == 1 %}
 
                             <div id="chat-logs">
                                 <p class="questions">{{ next_question }}</p>
