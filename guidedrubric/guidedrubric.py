@@ -1097,8 +1097,14 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         # )
         # completion_tokens = runs.usage.completion_tokens
         self.completion_token += 1
+        attempted_phase_is_last = False
+        logging.info('========send_message')
+        logging.info(self.last_attempted_phase_id)
+        if response_metadata['attempted_phase_id'] == int(self.last_phase_id):
+            #next_phase_id = self.last_attempted_phase_id
+            attempted_phase_is_last = True
         response_metadata.update({'completion_token': self.completion_token,\
-        'is_attempted_phase_successful': self.is_last_phase_successful})
+        'is_attempted_phase_successful': self.is_last_phase_successful, 'attempted_phase_is_last': attempted_phase_is_last})
         print("COMPLETION TOKENSS", self.completion_token)
 
         return {'result': 'success' if res else 'failed', 'response': res, 'response_metadata': response_metadata}

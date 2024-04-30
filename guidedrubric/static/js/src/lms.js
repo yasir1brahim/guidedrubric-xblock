@@ -7,6 +7,8 @@ function GuidedRubricXBlock(runtime, element) {
     let skipBtn = document.getElementById('skip-btn');
     let errorMsg = document.getElementById('error-msg');
 
+    var attempted_phase_is_last = null;
+
     // loader
     let loadingMsg = document.createElement('div');
     var overlay = document.createElement("div");
@@ -31,6 +33,12 @@ function GuidedRubricXBlock(runtime, element) {
         }
         else{
 
+        if (attempted_phase_is_last == true)
+        {
+            alert('You have reached to the end of excercise')
+            return
+        }
+
         if (message != "skip")
         {
             $('#chat_input_loader').css('display', '')
@@ -53,23 +61,30 @@ function GuidedRubricXBlock(runtime, element) {
                 console.log(message)
                 let completion_token = response.response_metadata.completion_token
                 $('#completion_token').val(completion_token)
-                if (response.response_metadata['is_attempted_phase_successful'] == true || response.response_metadata['is_attempted_phase_successful'] == 'skip')
+                attempted_phase_is_last = response.response_metadata['attempted_phase_is_last']
+                if ((response.response_metadata['is_attempted_phase_successful'] == true || response.response_metadata['is_attempted_phase_successful'] == 'skip'))
                 {
+
                     keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
                     type_message(response.response);
-                    if (response.response[2] != null)
+                    if (response.response_metadata['attempted_phase_is_last'] == true)
+                    {
+                        close_prompt(response.response)
+                    }
+                    else if (response.response_metadata['attempted_phase_is_last'] == false)
                     {
                         hide_prompt()
                         update_prompt_for_new_question(response.response[2])
                     }
-                    else
-                    {
-                        close_prompt(response.response)
-                    }
                 }
-                else
+                else if (response.response_metadata['next_phase_id'] != null)
                 {
                     type_message(response.response);  
+                }
+
+                else if (response.response_metadata['next_phase_id'] == null)
+                {
+                    alert('You have reached to the end of excercise')
                 }
                 //type_message(response.response);
             } else {
@@ -193,10 +208,6 @@ function GuidedRubricXBlock(runtime, element) {
         $('#chat-input').css('display', 'none')
         $('#ai-msg').css('display', 'none')
         $('#chat-msg').css('display', 'none')
-        let p = document.createElement('p');
-                    p.classList.add('notification-btm');
-                    p.textContent = data[5];
-                    document.querySelectorAll('.chatgpt_wrapper')[document.querySelectorAll('.chatgpt_wrapper').length - 1].appendChild(p);
     }
 
     // Student reports
@@ -329,14 +340,14 @@ function GuidedRubricXBlock(runtime, element) {
                         $('#send-btn').text(data[3])
                     }
                     if (data[2] === null) {
-                        allQuestions = document.querySelectorAll('.my-msg');
-                        lastQuestion = allQuestions[allQuestions.length - 1];
-                        lastQuestion.parentNode.removeChild(lastQuestion);
+                        // allQuestions = document.querySelectorAll('.my-msg');
+                        // lastQuestion = allQuestions[allQuestions.length - 1];
+                        // lastQuestion.parentNode.removeChild(lastQuestion);
                     }
                 }
                 if (data[3] == null){
-                    $('.micro-ai-btn-container').css('display', 'none');
-                    $('.chat-input').css('display', 'none');
+                    //$('.micro-ai-btn-container').css('display', 'none');
+                    //$('.chat-input').css('display', 'none');
                     let p = document.createElement('p');
                     p.classList.add('notification-btm');
                     p.textContent = data[5];
