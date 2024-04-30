@@ -541,8 +541,8 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     @property
     def block_phases(self):
-        logging.info('==========phases property')
-        logging.info(self.phases)
+        #logging.info('==========phases property')
+        #logging.info(self.phases)
         phases_or_serialized_phases = self.phases
 
         if phases_or_serialized_phases is None:
@@ -554,9 +554,9 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             logging.info('============error')
             logging.info(e)
             phases = []
-        logging.info('========phases')
-        logging.info(phases)
-        logging.info(type(phases))
+        #logging.info('========phases')
+        #logging.info(phases)
+        #logging.info(type(phases))
         return phases
 
     
@@ -861,7 +861,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         #self.last_attempted_phase_id = 1
         #self.completion_token = 0
         #self.user_response = {}
-        logging.info('=======user response')
+        logging.info('=======user_response1')
         #self.user_response = {1: 'skip'}
         logging.info(self.user_response)
         user_service = self.runtime.service(self, 'user')
@@ -875,7 +875,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             is_user_staff = False
 
         next_phase_id = self.get_next_phase_id()
-        self.is_last_phase_successful = True
+        #self.is_last_phase_successful = True
         phase = self.get_phase(self.last_attempted_phase_id)
         button_label = ''
         if phase:
@@ -1038,8 +1038,11 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     def send_message(self, data, suffix=""):
         """Send message to OpenAI, and return the response"""
 
-        self.user_response = {}
-        self.last_attempted_phase_id = 1
+        #self.user_response = {}
+        #self.last_attempted_phase_id = 1
+        phase = self.get_phase(self.last_attempted_phase_id)
+        response_metadata = {'attempted_phase_id': self.last_attempted_phase_id, 'attempted_phase_question':\
+        phase['phase_question']}
         self.user_response[self.last_attempted_phase_id] = data['message']
         user_input = data['message']
         phase_id = int(self.last_attempted_phase_id)
@@ -1072,7 +1075,8 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         # )
         # completion_tokens = runs.usage.completion_tokens
         self.completion_token += 1
-        response_metadata = {'completion_token': self.completion_token}
+        response_metadata.update({'completion_token': self.completion_token,\
+        'is_attempted_phase_successful': self.is_last_phase_successful})
         print("COMPLETION TOKENSS", self.completion_token)
 
         return {'result': 'success' if res else 'failed', 'response': res, 'response_metadata': response_metadata}

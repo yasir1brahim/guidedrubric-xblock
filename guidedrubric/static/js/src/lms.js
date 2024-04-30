@@ -52,9 +52,19 @@ function GuidedRubricXBlock(runtime, element) {
                 console.log('========calling keep_user_response')
                 console.log(message)
                 let completion_token = response.response_metadata.completion_token
-                $('#completion_token').val(completion_token) 
-                keep_user_response(message)
-                type_message(response.response);
+                $('#completion_token').val(completion_token)
+                if (response.response_metadata['is_attempted_phase_successful'] == true)
+                {
+                    keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
+                    type_message(response.response);
+                    hide_prompt()
+                    update_prompt_for_new_question(response.response[2])
+                }
+                else
+                {
+                    type_message(response.response);  
+                }
+                //type_message(response.response);
             } else {
                 alert("You've reached the end of the exercise. Hope you learned something!");
                 chatLogs.removeChild(loadingMsg);
@@ -72,7 +82,7 @@ function GuidedRubricXBlock(runtime, element) {
             alert("You should enter prompt")
             return;
         }
-        document.querySelector('.chat-input').style.display = 'none';
+        //document.querySelector('.chat-input').style.display = 'none';
         errorMsg.textContent = "";
         var chat_message = chatMsg.value;
         let newMsg = document.createElement('div');
@@ -92,7 +102,7 @@ function GuidedRubricXBlock(runtime, element) {
     });
     skipBtn.addEventListener('click', function() {
         var status = document.createElement('div');
-        document.querySelector('.chat-input').style.display = 'none';
+        //document.querySelector('.chat-input').style.display = 'none';
         errorMsg.textContent = "";
         let newMsg = document.createElement('div');
         //newMsg.textContent = "Your Answer: " + chatMsg.value;
@@ -105,7 +115,7 @@ function GuidedRubricXBlock(runtime, element) {
         send_message("skip");
     });
 
-    function keep_user_response(user_input)
+    function keep_user_response(user_input, phase_id, ai_response, attempted_phase_question)
     {
         console.log('=======keep_user_response')
         console.log(user_input)
@@ -114,6 +124,37 @@ function GuidedRubricXBlock(runtime, element) {
         //           <textarea id="chat_msg_phase_`+phase_id+`" placeholder="Enter Prompt ... " rows="24" cols="230">`+user_input+`</textarea>
         //         </div>`
         // $('#chat-logs').append(user_response_div)
+
+        $('.recent-ai-msg').removeClass('recent-ai-msg')
+        var user_response_div = `<div id="chat-history">
+        <p class="questions">`+attempted_phase_question+`</p>
+        </div>
+        
+        <div class="chat-input" style="display: block;" id="prompt-with-loader">
+            <textarea id="chat-msg-`+phase_id+`" rows="24" cols="230">`+user_input+`</textarea>
+        </div>
+        <div id="ai-msg-`+phase_id+`" class="ai-msg recent-ai-msg">`+ai_response+`</div>`
+        $('#chatbox-history').append(user_response_div)
+
+    }
+
+    function update_prompt_for_new_question(question)
+    {
+        $('#chat-logs p').text(question)
+        $('#chat-msg').val("")
+        $('#ai-msg').text("")
+        $('.recent-ai-msg').removeClass('recent-ai-msg')
+        $('#ai-msg').addClass('recent-ai-msg')
+        $('#chat-logs').css('display', '')
+        $('#chat-input').css('display', '')
+        $('#ai-msg').css('display', '')
+    }
+
+    function hide_prompt()
+    {
+        $('#chat-logs').css('display', 'none')
+        $('#chat-input').css('display', 'none')
+        $('#ai-msg').css('display', 'none')
     }
 
     // Student reports
@@ -217,9 +258,10 @@ function GuidedRubricXBlock(runtime, element) {
 
         chunks = data[4]
         let aiMsg = $('.recent-ai-msg')
+        //let question = document.createElement('p');
+        //question.classList.add("questions");
         // let aiMsg = document.createElement('div');
         // let question = document.createElement('p');
-        // question.classList.add("questions");
         // aiMsg.classList.add("ai-msg");
         // chatLogs.appendChild(aiMsg);
     
@@ -230,18 +272,19 @@ function GuidedRubricXBlock(runtime, element) {
                 let current_text = aiMsg.text()
                 let new_text = current_text +  chunks[index];
                 //aiMsg.textContent += chunks[index];
-                $('.chat-input').css('display', 'none');
+                //$('.chat-input').css('display', 'none');
                 aiMsg.text(new_text)
                 
                 // Call this function again for the next chunk after a short delay
                 setTimeout(() => displayNextChunk(index + 1), 100); // Adjust delay as needed
             } else {
                 // Once all chunks are displayed, make the input field visible again
-                if (data[1] == 'Success' || data[1]==null || data[1]== 'Fail')
+                if (data[1] == 'Success' || data[1]==null)
                 {
                     if (data[2]){
-                        question.textContent = data[2];
-                        chatLogs.appendChild(question);
+                        //question.textContent = data[2];
+                        //chatLogs.appendChild(question);
+                        //$('#chat-logs p').text(data[2])
                         $('#send-btn').text(data[3])
                     }
                     if (data[2] === null) {
