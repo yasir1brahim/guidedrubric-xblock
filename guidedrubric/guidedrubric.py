@@ -485,7 +485,8 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     )
 
     completion_token = Integer(
-        scope=Scope.user_state
+        scope=Scope.user_state,
+        default=0
     )
 
     assistant_instructions = String(
@@ -613,6 +614,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             "field_assistant_instructions": self.fields["assistant_instructions"],
             "field_assistant_model": self.fields["assistant_model"],
             "field_completion_message": self.fields["completion_message"],
+            "field_completion_token": self.fields["completion_token"],
             "field_max_tokens_per_user": self.fields["max_tokens_per_user"],
             "field_zip_file":self.fields["zip_file"],
             "guided_rubric_xblock": self
@@ -648,6 +650,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         if type(request.params["knowledge_base"]) != str:
             self.knowledge_base = request.params["knowledge_base"].file._name
         self.completion_message = request.params["completion_message"]
+        self.completion_token = request.params["completion_token"]
         self.max_tokens_per_user = request.params["max_tokens_per_user"]
 
         manager = AssistantManager()
@@ -995,17 +998,17 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             self.user_response = user_response
         
 
-        thread_messages = client.beta.threads.messages.list(self.open_ai_thread_id,
-                                                            order='desc',
-                                                            limit=1)
-        latest_message = thread_messages.data[0]
-        run_id = latest_message.run_id
-        runs = client.beta.threads.runs.retrieve(
-        thread_id=self.open_ai_thread_id,
-        run_id=run_id
-        )
-        completion_tokens = runs.usage.completion_tokens
-        self.completion_token += completion_tokens
+        # thread_messages = client.beta.threads.messages.list(self.open_ai_thread_id,
+        #                                                     order='desc',
+        #                                                     limit=1)
+        # latest_message = thread_messages.data[0]
+        # run_id = latest_message.run_id
+        # runs = client.beta.threads.runs.retrieve(
+        # thread_id=self.open_ai_thread_id,
+        # run_id=run_id
+        # )
+        # completion_tokens = runs.usage.completion_tokens
+        self.completion_token += 1
         print("COMPLETION TOKENSS", self.completion_token)
 
         return {'result': 'success' if res else 'failed', 'response': res}
