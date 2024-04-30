@@ -486,7 +486,8 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     completion_token = Integer(
         scope=Scope.user_state,
-        default=0
+        default=0,
+        help=_("Define how many time a user can make prompts")
     )
 
     assistant_instructions = String(
