@@ -51,6 +51,8 @@ function GuidedRubricXBlock(runtime, element) {
                 chatLogs.removeChild(loadingMsg);
                 console.log('========calling keep_user_response')
                 console.log(message)
+                let completion_token = response.response_metadata.completion_token
+                $('#completion_token').val(completion_token) 
                 keep_user_response(message)
                 type_message(response.response);
             } else {

@@ -809,7 +809,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         when viewing courses.
         """
         #self.last_attempted_phase_id = 1
-        self.completion_token = 0
+        #self.completion_token = 0
         #self.user_response = {}
         logging.info('=======user response')
         #self.user_response = {1: 'skip'}
@@ -1022,9 +1022,10 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         # )
         # completion_tokens = runs.usage.completion_tokens
         self.completion_token += 1
+        response_metadata = {'completion_token': self.completion_token}
         print("COMPLETION TOKENSS", self.completion_token)
 
-        return {'result': 'success' if res else 'failed', 'response': res}
+        return {'result': 'success' if res else 'failed', 'response': res, 'response_metadata': response_metadata}
 
     
     @XBlock.json_handler
