@@ -57,8 +57,15 @@ function GuidedRubricXBlock(runtime, element) {
                 {
                     keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
                     type_message(response.response);
-                    hide_prompt()
-                    update_prompt_for_new_question(response.response[2])
+                    if (response.response[2] != null)
+                    {
+                        hide_prompt()
+                        update_prompt_for_new_question(response.response[2])
+                    }
+                    else
+                    {
+                        close_prompt(response.response)
+                    }
                 }
                 else
                 {
@@ -180,6 +187,18 @@ function GuidedRubricXBlock(runtime, element) {
         $('#ai-msg').css('display', 'none')
     }
 
+    function close_prompt(data)
+    {
+        $('#chat-logs').css('display', 'none')
+        $('#chat-input').css('display', 'none')
+        $('#ai-msg').css('display', 'none')
+        $('#chat-msg').css('display', 'none')
+        let p = document.createElement('p');
+                    p.classList.add('notification-btm');
+                    p.textContent = data[5];
+                    document.querySelectorAll('.chatgpt_wrapper')[document.querySelectorAll('.chatgpt_wrapper').length - 1].appendChild(p);
+    }
+
     // Student reports
     var reportElement = $(element).find(".scorm-reports .report");
     function initReports() {
@@ -271,7 +290,6 @@ function GuidedRubricXBlock(runtime, element) {
 
 
     function type_message(data) {
-        debugger;
         console.log('==========removing ai-msg')
         console.log($('.recent-ai-msg'))
         // $('.previous-ai-msg').remove();

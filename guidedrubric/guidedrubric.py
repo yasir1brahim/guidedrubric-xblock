@@ -885,7 +885,13 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         else:
             is_user_staff = False
 
-        next_phase_id = self.get_next_phase_id()
+
+        next_phase_id = None
+        next_question = None
+        if self.last_attempted_phase_id:
+            next_phase_id = self.get_next_phase_id()
+            next_question = self.get_next_question()
+
         #self.is_last_phase_successful = True
         phase = self.get_phase(self.last_attempted_phase_id)
         button_label = ''
@@ -896,7 +902,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         logging.info(self.get_next_question())
         lms_context = {
             "guided_rubric_xblock": self,
-            "next_question": self.get_next_question(),
+            "next_question": next_question,
             'user_response_details': self.user_response_details(),
             "button_label" : button_label,
             'is_user_staff':is_user_staff,
