@@ -656,7 +656,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         if type(request.params["knowledge_base"]) != str:
             self.knowledge_base = request.params["knowledge_base"].file._name
         self.completion_message = request.params["completion_message"]
-        self.completion_token = request.params["completion_token"]
         self.max_tokens_per_user = request.params["max_tokens_per_user"]
 
         manager = AssistantManager()
