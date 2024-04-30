@@ -1010,6 +1010,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     def handle_skip(self):
         self.last_attempted_phase_id = self.get_next_phase_id()
+        self.is_last_phase_successful = "skip"
 
 
     def handle_interaction(self, user_input):

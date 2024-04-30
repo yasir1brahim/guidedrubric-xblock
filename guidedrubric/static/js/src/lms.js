@@ -53,7 +53,7 @@ function GuidedRubricXBlock(runtime, element) {
                 console.log(message)
                 let completion_token = response.response_metadata.completion_token
                 $('#completion_token').val(completion_token)
-                if (response.response_metadata['is_attempted_phase_successful'] == true)
+                if (response.response_metadata['is_attempted_phase_successful'] == true || response.response_metadata['is_attempted_phase_successful'] == 'skip')
                 {
                     keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
                     type_message(response.response);
