@@ -808,9 +808,12 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         The primary view of the GuidedRubricXBlock, shown to students
         when viewing courses.
         """
-        #self.last_attempted_phase_id = 1
+        # if self.last_attempted_phase_id == 7 and not self.is_last_phase_successful:
+        #     pass
+        # else:
+        #     self.last_attempted_phase_id = 1
         #self.completion_token = 0
-        #self.user_response = {}
+            #self.user_response = {}
         logging.info('=======user_response1')
         #self.user_response = {1: 'skip'}
         logging.info(self.user_response)

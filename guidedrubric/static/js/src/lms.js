@@ -76,6 +76,7 @@ function GuidedRubricXBlock(runtime, element) {
     }};
     sendBtn.addEventListener('click', function() {
         //let status = document.createElement('div');
+        let chatMsg = document.getElementById('chat-msg');
         if (!chatMsg.value.trim()) {
             // errorMsg.textContent = "You should enter prompt";
             // return;
@@ -130,7 +131,7 @@ function GuidedRubricXBlock(runtime, element) {
         <p class="questions">`+attempted_phase_question+`</p>
         </div>
         
-        <div class="chat-input" style="display: block;" id="prompt-with-loader">
+        <div class="chat-input" style="display: block;" id="prompt-with-loader-`+phase_id+`">
             <textarea id="chat-msg-`+phase_id+`" rows="24" cols="230">`+user_input+`</textarea>
         </div>
         <div id="ai-msg-`+phase_id+`" class="ai-msg recent-ai-msg">`+ai_response+`</div>`
@@ -140,6 +141,28 @@ function GuidedRubricXBlock(runtime, element) {
 
     function update_prompt_for_new_question(question)
     {
+        // $('#chatbox-history #chat-logs').remove()
+        // $('#chatbox-history #prompt-with-loader').remove()
+        // $('#chatbox-history #ai-msg').remove()
+
+        $('#chat-logs').remove()
+        $('#prompt-with-loader').remove()
+        $('#ai-msg').remove()
+        
+        var new_prompt_div = `<div id="chat-logs">
+                                <p class="questions">`+question+`</p>
+                            </div>
+
+        <div class="chat-input" style="display: block;" id="prompt-with-loader">
+            <div id ="chat_input_loader" class="lds-dual-ring" style="display:none"></div><span id="error-msg"></span>
+            <textarea id="chat-msg"  placeholder="Enter Prompt ... " rows="24" cols="230"></textarea>
+        </div>
+        <div id="ai-msg" class="ai-msg recent-ai-msg"></div>`
+        // $('.chatbox').append(new_prompt_div)
+        $(new_prompt_div).insertBefore('.micro-ai-btn-primary.micro-ai-btn-container')
+
+
+        //
         $('#chat-logs p').text(question)
         $('#chat-msg').val("")
         $('#ai-msg').text("")
