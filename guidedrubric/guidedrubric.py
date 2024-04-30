@@ -563,8 +563,8 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             logging.info('============error')
             logging.info(e)
             phases = []
-        #logging.info('========phases')
-        #logging.info(phases)
+        logging.info('========phases')
+        logging.info(phases)
         #logging.info(type(phases))
         return phases
 
@@ -588,7 +588,11 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         next_phase_id = self.last_attempted_phase_id
         for item in self.block_phases:
             phase_id = int(item.get('phase_id'))
+            logging.info('=========phase_id == next_phase_id')
+            logging.info(phase_id == next_phase_id)
             if phase_id == next_phase_id:
+                logging.info('=========question is')
+                logging.info(item.get('phase_question'))
                 return item.get('phase_question')
 
 
@@ -808,7 +812,14 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         The primary view of the GuidedRubricXBlock, shown to students
         when viewing courses.
         """
-        #self.last_attempted_phase_id = 1
+        if len(self.user_response.keys()) == 0:
+            try:
+                self.last_attempted_phase_id = int(self.block_phases[0]['phase_id'])
+            except:
+                self.last_attempted_phase_id = 1
+        is_initial_phase = True
+        if len(self.user_response.keys()) > 0:
+            is_initial_phase = False
         #self.completion_token = 0
         #self.user_response = {}
         logging.info('=======user_response1')
@@ -830,6 +841,9 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         button_label = ''
         if phase:
             button_label = phase['button_label']
+        
+        logging.info('======self.get_next_question()')
+        logging.info(self.get_next_question())
         lms_context = {
             "guided_rubric_xblock": self,
             "next_question": self.get_next_question(),
@@ -837,7 +851,8 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             "button_label" : button_label,
             'is_user_staff':is_user_staff,
             "is_last_phase_successful": self.is_last_phase_successful,
-            "last_attempted_phase_id": self.last_attempted_phase_id
+            "last_attempted_phase_id": self.last_attempted_phase_id,
+            "is_initial_phase": is_initial_phase
             # "button_label": self.get_phase(self.last_attempted_phase_id)['button_label'] if self.get_phase(self.last_attempted_phase_id)['button_label'] else "" 
         }
         #context.update(context or {})
