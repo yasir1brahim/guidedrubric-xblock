@@ -153,3 +153,19 @@
             </div>
         </div>
     </div>
+
+{% if is_user_staff %}
+<div class="scorm-reports">
+      <span class="reports-togglable reports-togglable-off">
+        <input
+          type="text"
+          placeholder="Student username or email"
+          class="search-students"
+        />
+        <button class="clear-data" alt="reload report">Clear Student Attempts</button>
+        <div class="report"></div>
+      </span>
+    </div>
+    {% endif %}
+  </div>
+</div>
