@@ -133,11 +133,12 @@ function GuidedRubricXBlock(runtime, element) {
         let block_phases = []
         //block_phases.push({phase_id: last_phase_id+1,phase_name:phase_name, phase_question:phase_question})
          
-
+        var component_last_phase_id = 0;
         $(".phase-input-name").each(function() {
             var id = $(this).attr("id");
             var underscoreIndex = id.lastIndexOf('_');
             let phase_id = id.substring(underscoreIndex + 1);
+            component_last_phase_id = phase_id
 
             let phase_name = $(this).val()
             let phase_question = $('#phase_question_'+phase_id).val()
@@ -162,7 +163,7 @@ function GuidedRubricXBlock(runtime, element) {
 
         form_data.append('assistant_name', assistant_name);
         form_data.append('phases', JSON.stringify(block_phases));
-        form_data.append('last_phase_id', block_last_phase_id);
+        form_data.append('last_phase_id', component_last_phase_id);
         runtime.notify('save', {
             state: 'start'
         });
