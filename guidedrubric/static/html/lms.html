@@ -137,6 +137,7 @@
                         {% endif %}
 
                         {% endfor %}
+                        {% if next_question %}
                         <div id="chat-logs">
                             <p class="questions">{{ next_question }}</p>
                         </div>
@@ -147,6 +148,7 @@
                         </div>
                         <div id="ai-msg" class="ai-msg recent-ai-msg"></div>
                         {% endif %}
+                        {% endif %}
 
 
                         </div>
@@ -156,9 +158,11 @@
 
 
                         </div> -->
+                        {% if last_attempted_phase_id %}
                         <div class="micro-ai-btn-primary micro-ai-btn-container"><button id="send-btn">{{button_label}}</button>
                             <button id="skip-btn" class="btn-ghost">Skip Question</button>
                         </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

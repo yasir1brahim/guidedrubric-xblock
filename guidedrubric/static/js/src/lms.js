@@ -62,7 +62,8 @@ function GuidedRubricXBlock(runtime, element) {
                 let completion_token = response.response_metadata.completion_token
                 $('#completion_token').val(completion_token)
                 attempted_phase_is_last = response.response_metadata['attempted_phase_is_last']
-                if ((response.response_metadata['is_attempted_phase_successful'] == true || response.response_metadata['is_attempted_phase_successful'] == 'skip'))
+                var permitted_status = [true, 'skip']
+                if (permitted_status.includes(response.response_metadata['is_attempted_phase_successful']))
                 {
 
                     keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
@@ -96,34 +97,40 @@ function GuidedRubricXBlock(runtime, element) {
             console.log("An error occurred: ", error);
         });
     }};
-    sendBtn.addEventListener('click', function() {
-        //let status = document.createElement('div');
-        let chatMsg = document.getElementById('chat-msg');
-        if (!chatMsg.value.trim()) {
-            // errorMsg.textContent = "You should enter prompt";
-            // return;
-            alert("You should enter prompt")
-            return;
-        }
-        //document.querySelector('.chat-input').style.display = 'none';
-        errorMsg.textContent = "";
-        var chat_message = chatMsg.value;
-        let newMsg = document.createElement('div');
-        //newMsg.textContent = "Your Answer: " + chatMsg.value;
-        newMsg.classList.add("my-msg");
-        //status.classList.add("status");
-        //status.textContent = "Status: Pending";
-        chatLogs.appendChild(newMsg);
-        //chatLogs.appendChild(status)
-        chatLogs.appendChild(loadingMsg);
 
-        last_attempted_phase_id = $('#last_attempted_phase_id').val()
+    if (sendBtn != null)
+    {
+        sendBtn.addEventListener('click', function() {
+            //let status = document.createElement('div');
+            let chatMsg = document.getElementById('chat-msg');
+            if (!chatMsg.value.trim()) {
+                // errorMsg.textContent = "You should enter prompt";
+                // return;
+                alert("You should enter prompt")
+                return;
+            }
+            //document.querySelector('.chat-input').style.display = 'none';
+            errorMsg.textContent = "";
+            var chat_message = chatMsg.value;
+            let newMsg = document.createElement('div');
+            //newMsg.textContent = "Your Answer: " + chatMsg.value;
+            newMsg.classList.add("my-msg");
+            //status.classList.add("status");
+            //status.textContent = "Status: Pending";
+            chatLogs.appendChild(newMsg);
+            //chatLogs.appendChild(status)
+            chatLogs.appendChild(loadingMsg);
 
-        //chatMsg.value = "";
-        $('.micro-ai-btn-container').css('display', 'none')
-        send_message(chat_message);
-    });
-    skipBtn.addEventListener('click', function() {
+            last_attempted_phase_id = $('#last_attempted_phase_id').val()
+
+            //chatMsg.value = "";
+            $('.micro-ai-btn-container').css('display', 'none')
+            send_message(chat_message);
+        });
+    }
+    if (skipBtn != null)
+    {
+        skipBtn.addEventListener('click', function() {
         var status = document.createElement('div');
         //document.querySelector('.chat-input').style.display = 'none';
         errorMsg.textContent = "";
@@ -136,7 +143,8 @@ function GuidedRubricXBlock(runtime, element) {
         chatLogs.appendChild(loadingMsg);
         chatMsg.value = "";
         send_message("skip");
-    });
+        });
+    }
 
     function keep_user_response(user_input, phase_id, ai_response, attempted_phase_question)
     {
@@ -208,6 +216,7 @@ function GuidedRubricXBlock(runtime, element) {
         $('#chat-input').css('display', 'none')
         $('#ai-msg').css('display', 'none')
         $('#chat-msg').css('display', 'none')
+        $('.micro-ai-btn-primary.micro-ai-btn-container').css('display', 'none')
     }
 
     // Student reports
