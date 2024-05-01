@@ -337,3 +337,8 @@ div#prompt-with-loader {
   line-height: 1.6;
   color: rgb(49, 51, 63);
 }
+.content-wrapper {
+    background: none;
+    border: none;
+    margin: auto;
+}
