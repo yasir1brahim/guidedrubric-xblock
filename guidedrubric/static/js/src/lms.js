@@ -38,11 +38,11 @@ function GuidedRubricXBlock(runtime, element) {
             alert('You have reached to the end of excercise')
             return
         }
-
-        if (message != "skip")
-        {
-            $('#chat_input_loader').css('display', '')
-        }
+        $('#chat_input_loader').css('display', '')
+        // if (message != "skip")
+        // {
+        //     $('#chat_input_loader').css('display', '')
+        // }
         return $.ajax({
             type: "POST",
             url: handlerUrl,
@@ -62,18 +62,24 @@ function GuidedRubricXBlock(runtime, element) {
                 let completion_token = response.response_metadata.completion_token
                 $('#completion_token').val(completion_token)
                 attempted_phase_is_last = response.response_metadata['attempted_phase_is_last']
-                var permitted_status = [true, 'skip']
-                if (permitted_status.includes(response.response_metadata['is_attempted_phase_successful']))
+                var permitted_status_for_typing_ai_msg = [true, false, 'skip']
+                var permitted_status_for_showing_new_ques = [true, 'skip']
+                var res_is_attempted_phase_successful = response.response_metadata['is_attempted_phase_successful']
+                if (permitted_status_for_typing_ai_msg.includes(res_is_attempted_phase_successful))
                 {
 
-                    keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
-                    type_message(response.response);
+                    //keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
+                    // type_message(response.response);
                     if (response.response_metadata['attempted_phase_is_last'] == true)
                     {
+                        keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
+                        type_message(response.response);
                         close_prompt(response.response)
                     }
-                    else if (response.response_metadata['attempted_phase_is_last'] == false)
+                    else if (response.response_metadata['attempted_phase_is_last'] == false && permitted_status_for_showing_new_ques.includes(res_is_attempted_phase_successful))
                     {
+                        keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
+                        type_message(response.response);
                         hide_prompt()
                         update_prompt_for_new_question(response.response[2])
                     }
