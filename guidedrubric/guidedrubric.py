@@ -493,7 +493,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     assistant_model = String(
         display_name=_("Model"),
         help=_("The version of ChatGPT currently used by the XBlock"),
-        default="ChatGPT4",
+        default="gpt-4-turbo-preview",
         scope=Scope.content,
         edit=False,
     )
@@ -705,9 +705,10 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
                     response["errors"].append("Knowledge base file not provided.")
             elif self.zip_file:  # Use previously uploaded file if available
                 try:
+                    pass
                     # Associate the previously uploaded file with the assistant
-                    uploaded_file = client.files.create(filename=self.knowledge_base, purpose='assistants')
-                    client.beta.assistants.files.create(assistant_id=self.assistant_id, file_id=uploaded_file.id)
+                    # uploaded_file = client.files.create(filename=self.knowledge_base, purpose='assistants')
+                    # client.beta.assistants.files.create(assistant_id=self.assistant_id, file_id=uploaded_file.id)
                 except Exception as e:
                     print(e)
                     response["errors"].append("Failed to associate previously uploaded knowledge base file.")

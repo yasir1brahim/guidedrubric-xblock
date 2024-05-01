@@ -43,14 +43,14 @@
         <li class="field comp-setting-entry is-set">
             <div class="wrapper-comp-setting">
                 <label class="label setting-label" for="assistant_model">{% trans field_assistant_model.display_name %}</label>
-                <input class="input setting-input" name="assistant_model" id="assistant_model" value="{{ guided_rubric_xblock.assistant_model }}" type="text" disabled />
+                <input class="input setting-input" name="assistant_model" id="assistant_model" value="gpt-4-turbo-preview" type="text" disabled />
             </div>
             <span class="tip setting-help">{% trans field_assistant_model.help %}</span>
         </li>
 
         <li class="field comp-setting-entry is-set">
             <div class="wrapper-comp-setting">
-                <label class="label setting-label" for="knowledge_base">{% trans "Upload .zip package" %}</label>
+                <label class="label setting-label" for="knowledge_base">{% trans "Knowledge Base" %}</label>
                 <input class="input setting-input" name="knowledge_base" id="knowledge_base" type="file" accept="application/zip" />
             </div>
 
