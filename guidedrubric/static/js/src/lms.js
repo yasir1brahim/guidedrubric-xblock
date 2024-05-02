@@ -314,6 +314,10 @@ function GuidedRubricXBlock(runtime, element) {
         getReport(studentId)
     }
     function getReport(studentId) {
+        if(studentId === null){
+            alert("Please enter the username/email before clearing");
+            return;
+        }
         var getReportUrl = runtime.handlerUrl(element, 'scorm_get_student_state');
         $.ajax({
             url: getReportUrl,
@@ -323,15 +327,16 @@ function GuidedRubricXBlock(runtime, element) {
             },
         }).success(function (response) {
             console.log(response);
-            let completion_token = response.response_metadata.completion_token
-            $('#completion_token').val(completion_token)     
+            let completion_token = response.response_metadata.completion_token;
+            $('#completion_token').val(completion_token);
+            location.reload();
+            reportElement.html("Cleared user data");
             console.log("SUCCESS");
         }).fail(function () {
             console.log("FAIL");
         }).complete(function () {
             $(element).find(".reload-report").removeClass("reports-togglable-off");
         });
-        reportElement.html("Cleared user data");
         
     }
 
