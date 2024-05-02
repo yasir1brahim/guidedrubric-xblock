@@ -43,7 +43,7 @@ function GuidedRubricXBlock(runtime, element) {
         const max_tokens_per_user = parseInt(document.getElementById('max_tokens_per_user').value);
         const is_staff = document.getElementById('is_staff').value === 'True';
 
-        if(completion_token > max_tokens_per_user && !is_staff){
+        if(completion_token >= max_tokens_per_user && !is_staff){
             alert("You have exceeded the allowed number of tokens. Please contact the course staff")
         }
         else{
