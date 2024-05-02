@@ -34,6 +34,8 @@ from webob import Response
 import logging
 import xml.etree.ElementTree as ET
 import logging
+from lms.djangoapps.courseware.models import StudentModule
+from opaque_keys.edx.keys import UsageKey
 
 logger = logging.getLogger(__name__)
 
@@ -837,6 +839,9 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     def scorm_get_student_state(self, data, _suffix):
         print("scorm_get_student_state")
         user_id = data.params.get("id")
+        block_id = str(data.params.get("block_id"))
+        module_state = {}
+        response_metadata = {}
         try:
             user_id = int(user_id)
         except (TypeError, ValueError):
@@ -845,15 +850,24 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             )
         try:
             user = User.objects.get(id=user_id)
-            if user:
-                print("SELF COMPLETION TOKEN", self.completion_token)
-                self.completion_token = 0
+            usage_key = UsageKey.from_string(block_id)
+            course_id = str(usage_key.course_key)
+            student_module = StudentModule.objects.filter(student_id=int(user_id),
+            course_id=course_id,module_state_key=block_id).first()
+            if student_module and student_module.state:
+                module_state = json.loads(student_module.state)
+                if "completion_token" in module_state.keys():
+                    module_state['completion_token'] = 0
+                    student_module.state = json.dumps(module_state)
+                    student_module.save()
+            # if user:
+            #     print("SELF COMPLETION TOKEN", self.completion_token)
+            #     self.completion_token = 0
         except Exception as e:
-            print(e)
-        
+            logging.info('exception occured')
+            logging.info(e)
+            print("COMPLETION TOKENSS", self.completion_token)
         response_metadata = {'completion_token': self.completion_token}
-        print("COMPLETION TOKENSS", self.completion_token)
-
         return self.json_response({'result': 'success','response_metadata':response_metadata})
 
     
@@ -909,7 +923,8 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             'is_user_staff':is_user_staff,
             "is_last_phase_successful": self.is_last_phase_successful,
             "last_attempted_phase_id": self.last_attempted_phase_id,
-            "is_initial_phase": is_initial_phase
+            "is_initial_phase": is_initial_phase,
+            "block_id": self.scope_ids.usage_id,
             # "button_label": self.get_phase(self.last_attempted_phase_id)['button_label'] if self.get_phase(self.last_attempted_phase_id)['button_label'] else "" 
         }
         #context.update(context or {})
