@@ -536,7 +536,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     )
 
 
-    is_last_phase_successful = Boolean(default=False, scope=Scope.user_state)
+    is_last_phase_successful = Boolean(default=True, scope=Scope.user_state)
 
 
     @property
@@ -581,10 +581,11 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             phase_id = int(item.get('phase_id'))
             logging.info('=========phase_id == next_phase_id')
             logging.info(phase_id == next_phase_id)
-            if phase_id == next_phase_id:
-                logging.info('=========question is')
-                logging.info(item.get('phase_question'))
-                return item.get('phase_question')
+            if self.is_last_phase_successful:
+                if phase_id == next_phase_id:
+                    logging.info('=========question is')
+                    logging.info(item.get('phase_question'))
+                    return item.get('phase_question')
 
 
     @staticmethod
