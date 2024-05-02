@@ -98,57 +98,57 @@
                         <input type="hidden" id="is_last_phase_successful" value="{{ is_last_phase_successful }}"></input>
                         <div id="chatbox-history">
                             {% if is_initial_phase %}
-                            <div id="chat-logs">
-                                <p class="questions">{{ next_question }}</p>
-                            </div>
-
-                            <div class="chat-input" style="display: block;" id="prompt-with-loader">
-                                <div id ="chat_input_loader" class="lds-dual-ring" style="display:none"></div><span id="error-msg"></span>
-                                <textarea id="chat-msg"  placeholder="Enter Prompt ... " rows="24" cols="230"></textarea>
-                            </div>
-                            <div id="ai-msg" class="ai-msg recent-ai-msg"></div>
-                            {% else %}
-                            {% for phase_id, response in user_response_details.items %}
-                                
-                            {% if phase_id == last_attempted_phase_id and not is_last_phase_successful %}
                                 <div id="chat-logs">
                                     <p class="questions">{{ next_question }}</p>
                                 </div>
 
                                 <div class="chat-input" style="display: block;" id="prompt-with-loader">
                                     <div id ="chat_input_loader" class="lds-dual-ring" style="display:none"></div><span id="error-msg"></span>
-                                    <textarea id="chat-msg"  rows="24" cols="230">{{ response.response.user_response }}</textarea>
+                                    <textarea id="chat-msg"  placeholder="Enter Prompt ... " rows="24" cols="230"></textarea>
                                 </div>
-                                <div id="ai-msg" class="ai-msg recent-ai-msg">{{ response.response.ai_response }}</div>
+                                <div id="ai-msg" class="ai-msg recent-ai-msg"></div>
+                            {% elif not is_initial_phase %}
+                                {% for phase_id, response in user_response_details.items %}
+                                {% if phase_id == last_attempted_phase_id and not is_last_phase_successful %}
+                                    <div id="chat-logs">
+                                        <p class="questions">{{ response.question }}</p>
+                                    </div>
+
+                                    <div class="chat-input" style="display: block;" id="prompt-with-loader">
+                                        <div id ="chat_input_loader" class="lds-dual-ring" style="display:none"></div><span id="error-msg"></span>
+                                        <textarea id="chat-msg"  rows="24" cols="230">{{ response.response.user_response }}</textarea>
+                                    </div>
+                                    <div id="ai-msg" class="ai-msg recent-ai-msg">{{ response.response.ai_response }}</div>
                         
 
-                        {% else %}
+                                {% else %}
+                                
+                                    <div id="chat-history">
+                                        <p class="questions">{{ response.question }}</p>
+                                    </div>
+                                    
+                                    
+                                    <div class="chat-input" style="display: block;" id="prompt-with-loader-{{phase_id}}">
+                                        <textarea id="chat-msg-{{phase_id}}" rows="24" cols="230">{{ response.response.user_response }}</textarea>
+                                    </div>
+                                    <div id="ai-msg-{{ phase_id }}" class="ai-msg">{{ response.response.ai_response }}</div>
 
-                            <div id="chat-history">
-                                <p class="questions">{{ response.question }}</p>
-                            </div>
-                            
-                            
-                            <div class="chat-input" style="display: block;" id="prompt-with-loader-{{phase_id}}">
-                                <textarea id="chat-msg-{{phase_id}}" rows="24" cols="230">{{ response.response.user_response }}</textarea>
-                            </div>
-                            <div id="ai-msg-{{ phase_id }}" class="ai-msg">{{ response.response.ai_response }}</div>
+                                {% endif %}
+                                {% endfor %}
 
-                        {% endif %}
+                            {% elif not is_initial_phase and next_question %}
+                                <p>{{ next_question }}</p>
+                                <div id="chat-logs">
+                                    <p class="questions">{{ next_question }}</p>
+                                </div>
 
-                        {% endfor %}
-                        {% if next_question %}
-                        <div id="chat-logs">
-                            <p class="questions">{{ next_question }}</p>
-                        </div>
-
-                        <div class="chat-input" style="display: block;" id="prompt-with-loader">
-                            <div id ="chat_input_loader" class="lds-dual-ring" style="display:none"></div><span id="error-msg"></span>
-                            <textarea id="chat-msg"  placeholder="Enter Prompt ... " rows="24" cols="230"></textarea>
-                        </div>
-                        <div id="ai-msg" class="ai-msg recent-ai-msg"></div>
-                        {% endif %}
-                        {% endif %}
+                                <div class="chat-input" style="display: block;" id="prompt-with-loader">
+                                    <div id ="chat_input_loader" class="lds-dual-ring" style="display:none"></div><span id="error-msg"></span>
+                                    <textarea id="chat-msg"  placeholder="Enter Prompt ... " rows="24" cols="230"></textarea>
+                                </div>
+                                <div id="ai-msg" class="ai-msg recent-ai-msg"></div>
+                                
+                            {% endif %}
 
 
                         </div>

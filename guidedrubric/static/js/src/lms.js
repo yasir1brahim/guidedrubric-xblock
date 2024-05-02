@@ -8,6 +8,7 @@ function GuidedRubricXBlock(runtime, element) {
     let errorMsg = document.getElementById('error-msg');
 
     var attempted_phase_is_last = null;
+    var is_attempted_phase_successful = null;
 
     // loader
     let loadingMsg = document.createElement('div');
@@ -23,6 +24,20 @@ function GuidedRubricXBlock(runtime, element) {
     // Handlers
     var handlerUrl = runtime.handlerUrl(element, 'send_message');
 
+    function is_excercise_finished()
+    {
+        if (attempted_phase_is_last == true && is_attempted_phase_successful == true)
+        {
+            return true;
+        }
+
+        else 
+        {
+            return false;
+        }
+
+    }
+
     function send_message(message) {
         const completion_token = parseInt(document.getElementById('completion_token').value);
         const max_tokens_per_user = parseInt(document.getElementById('max_tokens_per_user').value);
@@ -33,7 +48,7 @@ function GuidedRubricXBlock(runtime, element) {
         }
         else{
 
-        if (attempted_phase_is_last == true)
+        if (is_excercise_finished() == true)
         {
             alert('You have reached to the end of excercise')
             return
@@ -65,16 +80,23 @@ function GuidedRubricXBlock(runtime, element) {
                 var permitted_status_for_typing_ai_msg = [true, false, 'skip']
                 var permitted_status_for_showing_new_ques = [true, 'skip']
                 var res_is_attempted_phase_successful = response.response_metadata['is_attempted_phase_successful']
+                is_attempted_phase_successful = response.response_metadata['is_attempted_phase_successful']
                 if (permitted_status_for_typing_ai_msg.includes(res_is_attempted_phase_successful))
                 {
 
                     //keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
                     // type_message(response.response);
-                    if (response.response_metadata['attempted_phase_is_last'] == true)
+                    if (response.response_metadata['attempted_phase_is_last'] == true && (res_is_attempted_phase_successful == true || res_is_attempted_phase_successful == 'skip'))
                     {
                         keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
                         type_message(response.response);
                         close_prompt(response.response)
+                    }
+                    else if (response.response_metadata['attempted_phase_is_last'] == true && res_is_attempted_phase_successful == false)
+                    {
+                        //keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
+                        type_message(response.response);
+                        //hide_prompt()
                     }
                     else if (response.response_metadata['attempted_phase_is_last'] == false && permitted_status_for_showing_new_ques.includes(res_is_attempted_phase_successful))
                     {
