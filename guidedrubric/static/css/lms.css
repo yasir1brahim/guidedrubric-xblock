@@ -342,3 +342,7 @@ div#prompt-with-loader {
     border: none;
     margin: auto;
 }
+
+.wrap-instructor-info{
+    margin: auto;
+}
