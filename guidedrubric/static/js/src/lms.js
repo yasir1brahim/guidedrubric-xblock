@@ -184,6 +184,8 @@ function GuidedRubricXBlock(runtime, element) {
         //         </div>`
         // $('#chat-logs').append(user_response_div)
 
+        if (user_input !== 'skip'){
+
         $('.recent-ai-msg').removeClass('recent-ai-msg')
         var user_response_div = `<div id="chat-history">
         <p class="questions">`+attempted_phase_question+`</p>
@@ -195,6 +197,20 @@ function GuidedRubricXBlock(runtime, element) {
         <div id="ai-msg-`+phase_id+`" class="ai-msg recent-ai-msg">`+ai_response+`</div>`
         $('#chatbox-history').append(user_response_div)
 
+    }
+        else
+        {
+        $('.recent-ai-msg').removeClass('recent-ai-msg')
+        var user_response_div = `<div id="chat-history">
+        <p class="questions">`+attempted_phase_question+`</p>
+        </div>
+
+        <div class="chat-input" style="display: block;" id="prompt-with-loader-`+phase_id+`">
+            <textarea id="chat-msg-`+phase_id+`" rows="24" cols="230" disabled>`+user_input+`</textarea>
+        </div>
+        <div id="ai-msg-`+phase_id+`" class="ai-msg recent-ai-msg">`+ai_response+`</div>`
+        $('#chatbox-history').append(user_response_div)
+        }
     }
 
     function update_prompt_for_new_question(question)
@@ -330,8 +346,8 @@ function GuidedRubricXBlock(runtime, element) {
             let completion_token = response.response_metadata.completion_token;
             $('#completion_token').val(completion_token);
             location.reload();
-            reportElement.html("Cleared user data");
             console.log("SUCCESS");
+            reportElement.html("Cleared user data");
         }).fail(function () {
             console.log("FAIL");
         }).complete(function () {
