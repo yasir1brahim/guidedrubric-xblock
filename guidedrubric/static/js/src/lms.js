@@ -318,7 +318,8 @@ function GuidedRubricXBlock(runtime, element) {
         $.ajax({
             url: getReportUrl,
             data: {
-                'id': studentId
+                'id': studentId,
+                'block_id': $('#block_id').val()
             },
         }).success(function (response) {
             console.log(response);
