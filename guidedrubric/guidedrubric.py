@@ -621,7 +621,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     @XBlock.handler
     def studio_submit(self, request, _suffix):
-        print("REQUEST PARAMS", request.params)
         self.phases = json.dumps(json.loads(request.params['phases']))
         self.last_phase_id = request.params["last_phase_id"]
         self.assistant_name = request.params["assistant_name"]
@@ -774,12 +773,10 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     
     @XBlock.handler
     def scorm_search_students(self, data, _suffix):
-        print("=============scorm_search_students===========")
         """
         Search enrolled students by username/email.
         """
         query = data.params.get("id", "")
-        print("query", query)
         enrollments = (
             CourseEnrollment.objects.filter(
                 is_active=True,
@@ -788,12 +785,10 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             .select_related("user")
             .order_by("user__username")
         )
-        print("enrollments", enrollments)
         if query:
             enrollments = enrollments.filter(
                 Q(user__username__startswith=query) | Q(user__email__startswith=query)
             )
-            print("enrollments====>", enrollments)
         # The format of each result is dictated by the autocomplete js library:
         # https://github.com/dyve/jquery-autocomplete/blob/master/doc/jquery.autocomplete.txt
         return self.json_response(
@@ -808,7 +803,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     @XBlock.handler
     def scorm_get_student_state(self, data, _suffix):
-        print("scorm_get_student_state")
         user_id = data.params.get("id")
         block_id = str(data.params.get("block_id"))
         module_state = {}
@@ -861,7 +855,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         user_service = self.runtime.service(self, 'user')
         xb_user = user_service.get_current_user()
         user_role = xb_user.opt_attrs['edx-platform.user_is_staff']
-        print("xb_user.opt_attrs['edx-platform.user_is_staff']",user_role)
+        # print("xb_user.opt_attrs['edx-platform.user_is_staff']",user_role)
         is_user_staff = False
         if user_role:
             is_user_staff = True
@@ -1077,7 +1071,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             attempted_phase_is_last = True
         response_metadata.update({'completion_token': self.completion_token,\
         'is_attempted_phase_successful': self.is_last_phase_successful, 'attempted_phase_is_last': attempted_phase_is_last})
-        print("COMPLETION TOKENSS", self.completion_token)
 
         return {'result': 'success' if res else 'failed', 'response': res, 'response_metadata': response_metadata}
 
