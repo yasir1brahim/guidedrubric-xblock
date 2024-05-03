@@ -72,8 +72,6 @@ function GuidedRubricXBlock(runtime, element) {
                     //statusElements[statusElements.length - 1].textContent = "Status: " + response.response[1];
                 }
                 chatLogs.removeChild(loadingMsg);
-                console.log('========calling keep_user_response')
-                console.log(message)
                 let completion_token = response.response_metadata.completion_token
                 $('#completion_token').val(completion_token)
                 attempted_phase_is_last = response.response_metadata['attempted_phase_is_last']
@@ -180,8 +178,6 @@ function GuidedRubricXBlock(runtime, element) {
 
     function keep_user_response(user_input, phase_id, ai_response, attempted_phase_question)
     {
-        console.log('=======keep_user_response')
-        console.log(user_input)
         // let phase_id = 1
         // let user_response_div = `<div class="chat-input" style="display: block;">
         //           <textarea id="chat_msg_phase_`+phase_id+`" placeholder="Enter Prompt ... " rows="24" cols="230">`+user_input+`</textarea>
@@ -289,14 +285,12 @@ function GuidedRubricXBlock(runtime, element) {
     }
     function searchStudents(request, response) {
         var url = runtime.handlerUrl(element, 'scorm_search_students');
-        console.log("url ===>", url);
         $.ajax({
             url: url,
             data: {
                 'id': request.term
             },
         }).success(function (data) {
-            console.log("data",data);
             if (data.length === 0) {
                 noStudentFound()
             }
@@ -346,14 +340,11 @@ function GuidedRubricXBlock(runtime, element) {
                 'block_id': $('#block_id').val()
             },
         }).success(function (response) {
-            console.log(response);
             let completion_token = response.response_metadata.completion_token;
             $('#completion_token').val(completion_token);
             location.reload();
-            console.log("SUCCESS");
             reportElement.html("Cleared user data");
         }).fail(function () {
-            console.log("FAIL");
         }).complete(function () {
             $(element).find(".reload-report").removeClass("reports-togglable-off");
         });
@@ -364,8 +355,6 @@ function GuidedRubricXBlock(runtime, element) {
 
 
     function type_message(data) {
-        console.log('==========removing ai-msg')
-        console.log($('.recent-ai-msg'))
         // $('.previous-ai-msg').remove();
         // $('.recent-ai-msg').textContent = ""
         $('.recent-ai-msg').empty()

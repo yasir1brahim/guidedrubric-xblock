@@ -86,11 +86,9 @@ function GuidedRubricXBlock(runtime, element) {
         let underscoreIndex = id.lastIndexOf('_');
         let phase_id = id.substring(underscoreIndex + 1);
         if ($(this).prop('checked')) {
-            console.log('Checkbox is checked');
             $('#div_rubric_'+phase_id).css('display', '')
             
         } else {
-            console.log('Checkbox is unchecked');
             $('#div_rubric_'+phase_id).css('display', 'none')
         }
     });
