@@ -105,6 +105,10 @@ function GuidedRubricXBlock(runtime, element) {
                         hide_prompt()
                         update_prompt_for_new_question(response.response[2])
                     }
+                    else if (response.response[1] == 'Fail' && !response.response_metadata['is_attempted_phase_successful'])
+                    {
+                        type_message(response.response);
+                    }
                 }
                 else if (response.response_metadata['next_phase_id'] != null)
                 {
@@ -117,7 +121,7 @@ function GuidedRubricXBlock(runtime, element) {
                 }
                 //type_message(response.response);
             } else {
-                alert("You've reached the end of the exercise. Hope you learned something!");
+                // alert("You've reached the end of the exercise. Hope you learned something!");
                 chatLogs.removeChild(loadingMsg);
                 document.querySelector('.chat-input').style.display = 'block';
             }
