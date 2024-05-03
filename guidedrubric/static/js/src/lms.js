@@ -192,7 +192,7 @@ function GuidedRubricXBlock(runtime, element) {
         </div>
         
         <div class="chat-input" style="display: block;" id="prompt-with-loader-`+phase_id+`">
-            <textarea id="chat-msg-`+phase_id+`" rows="24" cols="230">`+user_input+`</textarea>
+            <textarea id="chat-msg-`+phase_id+`" rows="24" cols="230" disabled>`+user_input+`</textarea>
         </div>
         <div id="ai-msg-`+phase_id+`" class="ai-msg recent-ai-msg">`+ai_response+`</div>`
         $('#chatbox-history').append(user_response_div)
