@@ -79,15 +79,11 @@ class EventHandler(AssistantEventHandler):
       
   @override
   def on_text_delta(self, delta, snapshot):
-    logging.info('=========on_text_delta')
-    logging.info(delta.value)
     if delta.value:
         if self.grade:
             ai_grade.append(delta.value)
         else:
             ai_messages.append(delta.value)
-            logging.info('========append ai_message')
-            logging.info(ai_messages)
       
   def on_tool_call_created(self, tool_call):
     pass
@@ -246,11 +242,7 @@ class AssistantManager:
             )
 
     def run_assistant(self, instructions, grade):
-        logging.info('===========inside run_assistant')
-        logging.info(self.thread)
-        logging.info(self.assistant)
         if self.thread and self.assistant:
-            logging.info('======run_assistant if ==========')
             try:
                 with self.client.beta.threads.runs.create_and_stream(
                     thread_id=self.thread.id,
@@ -262,7 +254,6 @@ class AssistantManager:
                     self.run = stream._AssistantEventHandler__current_run
                     self.process_message()
             except Exception as e:
-                logging.info('==========error')
                 logging.info(e)
                 print(f"Streaming error: {e}")
 
@@ -382,8 +373,6 @@ def handle_assistant_interaction(index, manager, user_input):
         role="user", content=user_input
     )
     instructions = build_instructions(index)
-    logging.info('===========instructions')
-    logging.info(instructions)
     manager.run_assistant(instructions, False)
     # manager.wait_for_completion()
     summary = manager.get_summary()
@@ -543,8 +532,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     @property
     def block_phases(self):
-        #logging.info('==========phases property')
-        #logging.info(self.phases)
         phases_or_serialized_phases = self.phases
 
         if phases_or_serialized_phases is None:
@@ -553,12 +540,8 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         try:
             phases = json.loads(phases_or_serialized_phases)
         except Exception as e:
-            logging.info('============error')
             logging.info(e)
             phases = []
-        logging.info('========phases')
-        logging.info(phases)
-        #logging.info(type(phases))
         return phases
 
     
@@ -575,18 +558,11 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     
     def get_next_question(self):
-        logging.info('=========self')
-        logging.info(self)
-        logging.info(self.last_attempted_phase_id)
         next_phase_id = self.last_attempted_phase_id
         for item in self.block_phases:
             phase_id = int(item.get('phase_id'))
-            logging.info('=========phase_id == next_phase_id')
-            logging.info(phase_id == next_phase_id)
             if self.is_last_phase_successful:
                 if phase_id == next_phase_id:
-                    logging.info('=========question is')
-                    logging.info(item.get('phase_question'))
                     return item.get('phase_question')
 
 
@@ -778,15 +754,9 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
                 return item
     
     def get_next_phase_id(self):
-        logging.info('==========inside get_next_phase_id')
         for item in self.block_phases:
             phase_id = int(item.get('phase_id'))
-            logging.info('====phase id')
-            logging.info(phase_id)
-            logging.info(type(phase_id))
             if phase_id != int(self.last_attempted_phase_id) and phase_id > int(self.last_attempted_phase_id):
-                logging.info('==========get_next_phase_id')
-                logging.info(phase_id)
                 return phase_id
     
 
@@ -867,7 +837,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         except Exception as e:
             logging.info('exception occured')
             logging.info(e)
-            print("COMPLETION TOKENSS", self.completion_token)
         response_metadata = {'completion_token': self.completion_token}
         return self.json_response({'result': 'success','response_metadata':response_metadata})
 
@@ -888,9 +857,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             is_initial_phase = False
         #self.completion_token = 0
             #self.user_response = {}
-        logging.info('=======user_response1')
         #self.user_response = {1: 'skip'}
-        logging.info(self.user_response)
         user_service = self.runtime.service(self, 'user')
         xb_user = user_service.get_current_user()
         user_role = xb_user.opt_attrs['edx-platform.user_is_staff']
@@ -914,8 +881,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         if phase:
             button_label = phase['button_label']
         
-        logging.info('======self.get_next_question()')
-        logging.info(self.get_next_question())
         lms_context = {
             "guided_rubric_xblock": self,
             "next_question": next_question,
@@ -930,10 +895,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         }
         #context.update(context or {})
         lms_context.update(context or {})
-        logging.info('+++++++ lms context ++++++')
-        logging.info(lms_context)
-        logging.info('=========user_response')
-        logging.info(self.user_response_details())
         template = self.render_template("static/html/lms.html", lms_context)
         frag = Fragment(template)
         frag.add_css(self.resource_string("static/css/lms.css"))
@@ -964,8 +925,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             role="user", content=user_input
         )
         instructions = self.build_instructions(index, False)
-        logging.info('===========instructions')
-        logging.info(instructions)
         manager.run_assistant(instructions, False)
         # manager.wait_for_completion()
         summary = manager.get_summary()
@@ -1059,8 +1018,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
                 hand_intr = self.handle_assistant_interaction(index, manager, user_input)
                 hand_gra = self.handle_assistant_grading(index, manager)
             try:
-                logging.info('=======getting next phase question')
-                logging.info(self.last_attempted_phase_id)
                 phase = self.get_phase(self.last_attempted_phase_id)
                 question = phase['phase_question']
                 button_label = phase['button_label']
@@ -1115,8 +1072,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         # completion_tokens = runs.usage.completion_tokens
         self.completion_token += 1
         attempted_phase_is_last = False
-        logging.info('========send_message')
-        logging.info(self.last_attempted_phase_id)
         if response_metadata['attempted_phase_id'] == int(self.last_phase_id):
             #next_phase_id = self.last_attempted_phase_id
             attempted_phase_is_last = True
