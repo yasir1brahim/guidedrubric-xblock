@@ -680,7 +680,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
                 except Exception as e:
                     print(e)
-                    response["errors"].append("Knowledge base file not provided.")
+                    response["errors"].append("Knowledge base file not provided, or file provided is not in zip format.")
             elif self.zip_file:  # Use previously uploaded file if available
                 try:
                     pass
