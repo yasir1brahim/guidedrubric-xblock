@@ -132,7 +132,7 @@ div#prompt-with-loader {
 
 #prompt-with-loader .lds-dual-ring {
     position: absolute;
-    right: 20px;
+    right: 23px;
     top: 12px;
     width: 20px;
     height: 20px;
@@ -330,7 +330,8 @@ div#prompt-with-loader {
     resize: none;
     box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
     border: none;
-    margin-bottom:25px
+    margin-bottom:25px;
+    padding-right: 35px !important;
 }
 .ai-msg{
   font-family: "Source Sans Pro", sans-serif;
