@@ -417,6 +417,16 @@ function GuidedRubricXBlock(runtime, element) {
     }
     $(function ($) {
         initReports();
+        $('div[id^="problem_"]').each(function() {
+            var $problemWrapper = $(this);
+    
+            // Retrieve the encoded content directly from the data attribute
+            var content = $problemWrapper.data('content');
+    
+            // Render the content inside the problems-wrapper and remove the spinner within it
+            $problemWrapper.html(content);
+            $problemWrapper.find('.loading-spinner').remove();
+        });
         /* Here's where you'd do things on page load. */
     });
 
