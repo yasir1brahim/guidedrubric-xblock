@@ -110,7 +110,9 @@
                                                 <div id ="chat_input_loader" class="lds-dual-ring" style="display:none"></div><span id="error-msg"></span>
                                                 <textarea id="chat-msg"  rows="24" cols="230">{{ response.response.user_response }}</textarea>
                                             </div>
-                                            <div id="ai-msg" class="ai-msg recent-ai-msg">{{ response.response.ai_response }}</div>
+                                            <div id="ai-msg" class="ai-msg recent-ai-msg"><div class="icon-bar">
+                                                🤖
+                                            </div><p>{{ response.response.ai_response }}</p></div>
                                 
 
                                     {% else %}

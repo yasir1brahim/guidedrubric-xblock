@@ -92,6 +92,7 @@ function GuidedRubricXBlock(runtime, element) {
                     }
                     else if (response.response_metadata['attempted_phase_is_last'] == true && res_is_attempted_phase_successful == false)
                     {
+                        keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
                         //keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
                         type_message(response.response);
                         //hide_prompt()
@@ -233,7 +234,9 @@ function GuidedRubricXBlock(runtime, element) {
             <div id ="chat_input_loader" class="lds-dual-ring" style="display:none"></div><span id="error-msg"></span>
             <textarea id="chat-msg"  placeholder="Enter Prompt ... " rows="24" cols="230"></textarea>
         </div>
-        <div id="ai-msg" class="ai-msg recent-ai-msg"></div>`
+        <div id="ai-msg" class="ai-msg recent-ai-msg"><div class="icon-bar">
+            🤖
+        </div><p></p></div>`
         // $('.chatbox').append(new_prompt_div)
         $(new_prompt_div).insertBefore('.micro-ai-btn-primary.micro-ai-btn-container')
 

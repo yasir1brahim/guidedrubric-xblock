@@ -342,12 +342,12 @@ div#prompt-with-loader {
 .scorm-reports{
     margin-left: 14px;
 }
-#ai-msg{
+/* #ai-msg{
     display: none;
 }
 #ai-msg- {
     display: none;
-}
+} */
 .content-wrapper {
     background: none;
     border: none;
