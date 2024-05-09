@@ -99,6 +99,9 @@
                                     <div id ="chat_input_loader" class="lds-dual-ring" style="display:none"></div><span id="error-msg"></span>
                                     <textarea id="chat-msg"  placeholder="Enter Prompt ... " rows="24" cols="230"></textarea>
                                 </div>
+                                <div id="ai-msg" class="ai-msg recent-ai-msg"><div class="icon-bar">
+                                    🤖
+                                </div><p>{{ response.response.ai_response }}</p></div>
                             {% elif not is_initial_phase %}
                                 {% for phase_id, response in user_response_details.items %}
                                     {% if phase_id == last_attempted_phase_id and not is_last_phase_successful %}
