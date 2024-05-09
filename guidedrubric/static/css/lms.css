@@ -338,6 +338,12 @@ div#prompt-with-loader {
   line-height: 1.6;
   color: rgb(49, 51, 63);
 }
+#ai-msg{
+    display: none;
+}
+#ai-msg- {
+    display: none;
+}
 .content-wrapper {
     background: none;
     border: none;
@@ -346,4 +352,31 @@ div#prompt-with-loader {
 
 .wrap-instructor-info{
     margin: auto;
+}
+.ai-msg {
+    background: #ebf2fc;
+    padding: 25px;
+    border-radius: 5px;
+    display: flex;
+    gap: 15px;
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+}
+.ai-msg p {
+    color: #004380;
+    font-size: 1rem;
+    font-weight: 600;
+    font-size: 13px;
+}
+.ai-msg .icon-bar {
+    width: 100%;
+    max-width: 40px;
+}
+.ai-msg .icon-bar svg {
+    max-width: 40px;
+    width: 100%;
+}
+@media (max-width: 767px){
+    .ai-msg{
+        flex-direction: column;
+    }
 }

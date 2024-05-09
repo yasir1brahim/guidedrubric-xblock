@@ -100,8 +100,8 @@ function GuidedRubricXBlock(runtime, element) {
                     {
                         keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
                         type_message(response.response);
-                        hide_prompt()
-                        update_prompt_for_new_question(response.response[2])
+                        hide_prompt();
+                        update_prompt_for_new_question(response.response[2]);
                     }
                     else if (response.response[1] == 'Fail' && !response.response_metadata['is_attempted_phase_successful'])
                     {
@@ -194,7 +194,9 @@ function GuidedRubricXBlock(runtime, element) {
         <div class="chat-input" style="display: block;" id="prompt-with-loader-`+phase_id+`">
             <textarea id="chat-msg-`+phase_id+`" rows="24" cols="230" disabled>`+user_input+`</textarea>
         </div>
-        <div id="ai-msg-`+phase_id+`" class="ai-msg recent-ai-msg">`+ai_response+`</div>`
+        <div id="ai-msg-`+phase_id+`" class="ai-msg recent-ai-msg"><div class="icon-bar">
+            🤖
+        </div><p>`+ai_response+`</p></div>`
         $('#chatbox-history').append(user_response_div)
 
     }
@@ -357,11 +359,11 @@ function GuidedRubricXBlock(runtime, element) {
     function type_message(data) {
         // $('.previous-ai-msg').remove();
         // $('.recent-ai-msg').textContent = ""
-        $('.recent-ai-msg').empty()
+        $('.recent-ai-msg p').empty();
 
 
         chunks = data[4]
-        let aiMsg = $('.recent-ai-msg')
+        let aiMsg = $('.recent-ai-msg').find('p');
         //let question = document.createElement('p');
         //question.classList.add("questions");
         // let aiMsg = document.createElement('div');
