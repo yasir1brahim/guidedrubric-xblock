@@ -337,6 +337,10 @@ div#prompt-with-loader {
   font-family: "Source Sans Pro", sans-serif;
   line-height: 1.6;
   color: rgb(49, 51, 63);
+  margin-bottom: 10px;
+}
+.scorm-reports{
+    margin-left: 14px;
 }
 #ai-msg{
     display: none;

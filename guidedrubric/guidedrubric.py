@@ -487,6 +487,16 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         if type(request.params["knowledge_base"]) != str:
             knowledge_base_file = request.params.get("knowledge_base")
             if knowledge_base_file:
+                if self.assistant_id:
+                    assistant_files = client.beta.assistants.files.list(
+                            assistant_id=self.assistant_id
+                        )
+                    for file in assistant_files.data:
+                        file_id = file.id
+                        client.beta.assistants.files.delete(
+                            assistant_id=self.assistant_id,
+                            file_id=file_id
+                        )
                 try:
                     package_file = knowledge_base_file.file
                     dest_path_2 = os.path.join(self.extract_folder_base_path, knowledge_base_file.filename)
