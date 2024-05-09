@@ -5,22 +5,16 @@
 <div class="chatgpt_wrapper">
     <div class="chatgpt_block">
         <div class="chatbox">
-        <input type="hidden" id="is_staff" value="{{is_user_staff}}">
-        <input type="hidden" id="completion_token" value="{{guided_rubric_xblock.completion_token}} ">
-        <input type="hidden" id="max_tokens_per_user" value="{{guided_rubric_xblock.max_tokens_per_user}} ">
-            <!-- <div id="chat-logs">
-                <p class="questions">{{ next_question }}</p>
-            </div> -->
+            <input type="hidden" id="is_staff" value="{{is_user_staff}}">
+            <input type="hidden" id="completion_token" value="{{guided_rubric_xblock.completion_token}} ">
+            <input type="hidden" id="max_tokens_per_user" value="{{guided_rubric_xblock.max_tokens_per_user}} ">
             <div class="chat-input">
                 <span id="error-msg"></span>
-                <input type="hidden" id="last_attempted_phase_id" value="{{ guided_rubric_xblock.last_attempted_phase_id }}"></input>
-                <!-- <textarea id="chat-msg" placeholder="Enter Prompt ... " rows="5" cols="230"></textarea>
-                <button id="send-btn">Submit</button> -->
-                <!-- <button id="skip-btn">Skip Question</button>  -->
+                <input type="hidden" id="last_attempted_phase_id" value="{{ guided_rubric_xblock.last_attempted_phase_id }}">
             </div>
         </div>
     </div>
-</div> 
+</div>
 <div class="gudied-critical-analysis-container">
         <div class="guided-critical-analysis-header">
             <h1>Guided Critical Analysis</h1>
@@ -92,9 +86,9 @@
             <div class="chatgpt_wrapper">
                 <div class="chatgpt_block">
                     <div class="chatbox">
-                        <input type="hidden" id="last_attempted_phase_id" value="{{ last_attempted_phase_id }}"></input>
-                        <input type="hidden" id="is_last_phase_successful" value="{{ is_last_phase_successful }}"></input>
-                        <input type="hidden" id="block_id" value="{{ block_id}}"></input>
+                        <input type="hidden" id="last_attempted_phase_id" value="{{ last_attempted_phase_id }}">
+                        <input type="hidden" id="is_last_phase_successful" value="{{ is_last_phase_successful }}">
+                        <input type="hidden" id="block_id" value="{{ block_id}}">
                         <div id="chatbox-history">
                             {% if is_initial_phase %}
                                 <div id="chat-logs">
@@ -148,14 +142,7 @@
                                 
                             {% endif %}
 
-
                         </div>
-                        <!-- <div class="chat-input" style="display: block;" id="prompt-with-checkbox">
-                            <img src="https://i.ibb.co/zmpCtwF/checkicon.png"><span id="error-msg"></span>
-                            <textarea id="chat-msg" placeholder="Enter Prompt ... " rows="24" cols="230"></textarea>
-
-
-                        </div> -->
                         {% if last_attempted_phase_id %}
                         <div class="micro-ai-btn-primary micro-ai-btn-container"><button id="send-btn">{{button_label}}</button>
                             <button id="skip-btn" class="btn-ghost">Skip Question</button>
@@ -168,17 +155,15 @@
     </div>
 
 {% if is_user_staff %}
-<div class="scorm-reports">
-      <span class="reports-togglable reports-togglable-off">
+    <div class="scorm-reports">
+        <span class="reports-togglable reports-togglable-off">
         <input
-          type="text"
-          placeholder="Student username or email"
-          class="search-students"
+            type="text"
+            placeholder="Student username or email"
+            class="search-students"
         />
         <button class="clear-data" alt="reload report">Clear Student Attempts</button>
         <div class="report"></div>
-      </span>
+        </span>
     </div>
-    {% endif %}
-  </div>
-</div>
+{% endif %}

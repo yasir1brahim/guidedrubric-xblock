@@ -3,7 +3,6 @@
 from typing_extensions import override
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.template import Context, Template
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db.models import Q
@@ -12,7 +11,6 @@ from webob import Response
 from six import string_types
 from web_fragments.fragment import Fragment
 from xblock.core import XBlock
-from xblock.completable import CompletableXBlockMixin
 from xblock.fields import Scope, String, Float, Boolean, Dict, DateTime, Integer
 import zipfile
 import os
@@ -27,11 +25,6 @@ import json
 from xblock.fields import Scope, String, Integer
 from django.template import Context, Template
 from xblock.completable import CompletableXBlockMixin
-from webob import Response
-import logging
-from xblock.completable import CompletableXBlockMixin
-from webob import Response
-import logging
 import xml.etree.ElementTree as ET
 import logging
 from lms.djangoapps.courseware.models import StudentModule
@@ -103,79 +96,6 @@ class EventHandler(AssistantEventHandler):
 # with the `EventHandler` class to create the Run 
 # and stream the response.
 
-phases = [
-    {
-        "id": "name",
-        "question": """What is your name?""",
-        "sample_answer": "",
-        "instructions": """The user will give you their name. Then, welcome the user to the exercise, and explain that you'll help them and provide feedback as they go. End your statement with "I will now give you your first question about the article." """,
-        "rubric": """
-            1. Name
-                    1 point - The user has provided a response in this thread. 
-                    0 points - The user has not provided a response. 
-        """,
-        "label": "GO!",
-        "minimum_score": 0
-    },
-    {
-        "id": "about",
-        "question": """What is the article about?""",
-        "sample_answer":"This article investigates the impact of various video production decisions on student engagement in online educational videos, utilizing data from 6.9 million video watching sessions on the edX platform. It identifies factors such as video length, presentation style, and speaking speed that influence engagement, and offers recommendations for creating more effective educational content.",
-        "instructions": "Provide helpful feedback for the following question. If the student has not answered the question accurately, then do not provide the correct answer for the student. Instead, use evidence from the article coach them towards the correct answer. If the student has answered the question correctly, then explain why they were correct and use evidence from the article. Question:",
-        "rubric": """
-                1. Length
-                    1 point - Response is greater than or equal to 150 characters.
-                    0 points - Response is less than 150 characters. 
-                2. Key Points
-                    2 points - The response mentions both videos AND student engagement rates
-                    1 point - The response mentions either videos OR student engagement rates, but not both
-                    0 points - The response does not summarize any important points in the article. 
-        """,
-        "minimum_score": 2
-    },
-    {
-       "id": "methdologies",
-       "question": "Summarize the methodology(s) used.",
-       "sample_answer": "The study gathered data around video watch duration and problem attempts from the edX logs. These metrics served as a proxy for engagement. Then it compared that with video attributes like length, speaking rate, type, and production style, to determine how video production affects engagement.",
-       "instructions": "Provide helpful feedback for the following question. If the student has not answered the question accurately, then do not provide the correct answer for the student. Instead, use evidence from the article coach them towards the correct answer. If the student has answered the question correctly, then explain why they were correct and use evidence from the article. Question:",
-       "rubric": """
-               1. Correctness
-                   1 point - Response is correct and based on facts in the paper
-                   0 points - Response is incorrect or not based on facts in the paper
-               """,
-       "minimum_score": 1
-    },
-    {
-        "id": "findings",
-        "question": "What were the main findings in the article?",
-        "sample_answer": "Shorter videos are more engaging; Faster-speaking instructors hold students' attention better; High production value does not necessarily correlate with higher engagement;",
-        "instructions": "Provide helpful feedback for the following question. If the student has not answered the question accurately, then do not provide the correct answer for the student. Instead, use evidence from the article coach them towards the correct answer. If the student has answered the question correctly, then explain why they were correct and use evidence from the article. Question:",
-        "rubric": """
-            1. Correctness
-                    2 points - Response includes two or more findings or recommendations from the study
-                    1 point - Response includes only one finding or recommendation form the study
-                    0 points - Response includes no findings or recommendations or is not based on facts in the paper
-                    """,
-        "minimum_score": 1
-    },
-    {
-        "id": "limitations",
-        "question": "What are some of the weaknesses of this study?",
-        "sample_answer": "The study cannot measure true student engagement, and so it must use proxies; The study could not track any offline video viewing; The study only used data from math/science courses;",
-        "instructions": "Provide helpful feedback for the following question. If the student has not answered the question accurately, then do not provide the correct answer for the student. Instead, use evidence from the article coach them towards the correct answer. If the student has answered the question correctly, then explain why they were correct and use evidence from the article. Question:",
-        "rubric": """
-            1. Correctness
-                    2 points - Response includes two or more limitations of the study
-                    1 point - Response includes only one limitation in the study
-                    0 points - Response includes no limitations or is not based on facts in the paper
-                2. Total Score
-                    The total sum of their scores. 
-            """,
-        "minimum_score": 1
-    }
-    #Add more steps as needed
-    
-]
 
 session_state = {
     "current_question_index": 0,
@@ -188,10 +108,6 @@ current_question_index = session_state['current_question_index'] if 'current_que
 class AssistantManager:
     thread_id = None
     assistant_id = None
-
-    if 'current_question_index' not in session_state:
-        session_state.thread_obj = []
-
 
     def __init__(self, model: str = model):
         self.client = client
@@ -313,99 +229,6 @@ class AssistantManager:
                         required_actions=run_status.required_action.submit_tool_outputs.model_dump()
                     )
 
-
-def extract_score(text):
-    # Define the regular expression pattern
-    #regex has been modified to grab the total value whether or not it is returned inside double quotes. The AI seems to fluctuate between using quotes around values and not. 
-    pattern = r'"total":\s*"?(\d+)"?'
-    
-    # Use regex to find the score pattern in the text
-    match = re.search(pattern, text)
-
-    # If a match is found, return the score, otherwise return None
-    if match:
-        return int(match.group(1))
-    else:
-        return 0
-
-def check_score(score, question_num):
-    if score >= phases[question_num]["minimum_score"]:
-        return True
-    else:
-        return False
-
-def handle_skip(index):
-    session_state[f"phase_{index}_state"] = "skip"
-    session_state['current_question_index'] += 1
-
-def build_instructions(index, graded_step=False):
-    if graded_step:
-        compiled_instructions = """Please provide a score for the previous user message in this thread. Use the following rubric:
-        """ + phases[index]["rubric"] + """
-        Please output your response as JSON, using this format: { "[criteria 1]": "[score 1]", "[criteria 2]": "[score 2]", "total": "[total score]" }"""
-    else:
-        compiled_instructions = phases[index]["instructions"] + phases[index]["question"]
-
-    return compiled_instructions
-
-def handle_assistant_grading(index, manager):
-
-    instructions = build_instructions(index, True)
-    manager.run_assistant(instructions, True)
-
-    # manager.wait_for_completion()
-    summary = manager.get_summary()
-    session_state[f"phase_{index}_rubric"] = summary
-
-    score = extract_score(str(summary))
-    session_state[f"phase_{index}_score"] = score
-
-    #If the score passes, then increase the index to move to the next step                
-    if check_score(score, index):
-        session_state['current_question_index'] += 1
-        session_state[f"phase_{index}_state"] = "Success"
-    else:
-        session_state[f"phase_{index}_state"] = "Fail"
-    return session_state[f"phase_{index}_state"]
-
-def handle_assistant_interaction(index, manager, user_input):
-    manager.add_message_to_thread(
-        role="user", content=user_input
-    )
-    instructions = build_instructions(index)
-    manager.run_assistant(instructions, False)
-    # manager.wait_for_completion()
-    summary = manager.get_summary()
-    session_state[f"phase_{index}_summary"] = summary
-    return summary
-
-def main(user_input):
-
-    #Create the assistant one time. Only if the Assistant ID is not found, create a new one. 
-    manager = AssistantManager()
-    manager.create_assistant(
-    name="",
-    instructions="""""",
-    tools=[],
-    )
-    manager.create_thread()
-    
-    if  session_state['current_question_index'] <= len(phases) - 1:
-        index = session_state['current_question_index']
-        if user_input == "skip":
-            handle_skip(index)
-            hand_intr = None
-            hand_gra = None
-        elif session_state['current_question_index'] <= len(phases):
-            hand_intr = handle_assistant_interaction(index, manager, user_input)
-            hand_gra = handle_assistant_grading(index, manager)
-        try:
-            question = phases[session_state['current_question_index']]['question']
-        except:
-            question = None
-        messages_to_send = ai_messages.copy()
-        ai_messages.clear()
-        return hand_intr, hand_gra, question, messages_to_send
 
 @XBlock.wants("settings")
 @XBlock.wants("user")
