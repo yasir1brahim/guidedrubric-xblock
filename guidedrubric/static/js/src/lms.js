@@ -92,8 +92,6 @@ function GuidedRubricXBlock(runtime, element) {
                     }
                     else if (response.response_metadata['attempted_phase_is_last'] == true && res_is_attempted_phase_successful == false)
                     {
-                        keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
-                        //keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response_metadata['attempted_phase_question'])
                         type_message(response.response);
                         //hide_prompt()
                     }
@@ -244,7 +242,7 @@ function GuidedRubricXBlock(runtime, element) {
         //
         $('#chat-logs p').text(question)
         $('#chat-msg').val("")
-        $('#ai-msg').text("")
+        // $('#ai-msg').text("")
         $('.recent-ai-msg').removeClass('recent-ai-msg')
         $('#ai-msg').addClass('recent-ai-msg')
         $('#chat-logs').css('display', '')
