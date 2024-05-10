@@ -342,10 +342,10 @@ div#prompt-with-loader {
 .scorm-reports{
     margin-left: 14px;
 }
-/* #ai-msg{
-    display: none;
+.recent-ai-msg {
+    display: none !important;
 }
-#ai-msg- {
+/* #ai-msg- {
     display: none;
 } */
 .content-wrapper {
