@@ -103,8 +103,6 @@ session_state = {
     # Add more session state variables as needed
 }
 
-current_question_index = session_state['current_question_index'] if 'current_question_index' in session_state else 0
-
 class AssistantManager:
     thread_id = None
     assistant_id = None
@@ -426,11 +424,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         studio_context.update(context or {})
         template = self.render_template("static/html/studio.html", studio_context)
         frag = Fragment(template)
-
-
-        # html = self.resource_string("static/html/guidedrubric.html")
-        # html = self.resource_string("static/html/studio.html")
-        # frag = Fragment(html.format(self=self))
         frag.add_css(self.resource_string("static/css/studio.css"))
         frag.add_javascript(self.resource_string("static/js/src/studio.js"))
         frag.initialize_js('GuidedRubricXBlock')
@@ -517,9 +510,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             elif self.zip_file:  # Use previously uploaded file if available
                 try:
                     pass
-                    # Associate the previously uploaded file with the assistant
-                    # uploaded_file = client.files.create(filename=self.knowledge_base, purpose='assistants')
-                    # client.beta.assistants.files.create(assistant_id=self.assistant_id, file_id=uploaded_file.id)
                 except Exception as e:
                     print(e)
                     response["errors"].append("Failed to associate previously uploaded knowledge base file.")
@@ -658,9 +648,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
                     module_state['completion_token'] = 0
                     student_module.state = json.dumps(module_state)
                     student_module.save()
-            # if user:
-            #     print("SELF COMPLETION TOKEN", self.completion_token)
-            #     self.completion_token = 0
         except Exception as e:
             logging.info('exception occured')
             logging.info(e)
@@ -682,13 +669,9 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         is_initial_phase = True
         if len(self.user_response.keys()) > 0:
             is_initial_phase = False
-        #self.completion_token = 0
-            #self.user_response = {}
-        #self.user_response = {1: 'skip'}
         user_service = self.runtime.service(self, 'user')
         xb_user = user_service.get_current_user()
         user_role = xb_user.opt_attrs['edx-platform.user_is_staff']
-        # print("xb_user.opt_attrs['edx-platform.user_is_staff']",user_role)
         is_user_staff = False
         if user_role:
             is_user_staff = True
@@ -702,7 +685,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             next_phase_id = self.get_next_phase_id()
             next_question = self.get_next_question()
 
-        #self.is_last_phase_successful = True
         phase = self.get_phase(self.last_attempted_phase_id)
         button_label = ''
         if phase:
@@ -718,9 +700,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             "last_attempted_phase_id": self.last_attempted_phase_id,
             "is_initial_phase": is_initial_phase,
             "block_id": self.scope_ids.usage_id,
-            # "button_label": self.get_phase(self.last_attempted_phase_id)['button_label'] if self.get_phase(self.last_attempted_phase_id)['button_label'] else "" 
         }
-        #context.update(context or {})
         lms_context.update(context or {})
         template = self.render_template("static/html/lms.html", lms_context)
         frag = Fragment(template)
@@ -737,7 +717,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
                 phase = item
                 break
         if graded_step and phase.get('scored_question', None):
-            # if phase.get('scored_question', None):
             compiled_instructions = """Please provide a score for the previous user message in this thread. Use the following rubric:
             """ + phase["rubric"] + """
             Please output your response as JSON, using this format: { "[criteria 1]": "[score 1]", "[criteria 2]": "[score 2]", "total": "[total score]" }"""
@@ -753,9 +732,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         )
         instructions = self.build_instructions(index, False)
         manager.run_assistant(instructions, False)
-        # manager.wait_for_completion()
         summary = manager.get_summary()
-        #session_state[f"phase_{index}_summary"] = summary
         return summary
 
 
@@ -790,18 +767,11 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             return "Success"
         instructions = self.build_instructions(index, True)
         manager.run_assistant(instructions, True)
-
-        # manager.wait_for_completion()
         summary = manager.get_summary()
-        #session_state[f"phase_{index}_rubric"] = summary
-
         score = self.extract_score(str(summary))
-        #session_state[f"phase_{index}_score"] = score
-
         phase_state = None
         #If the score passes, then increase the index to move to the next step                
         if self.check_score(score, index):
-            #session_state['current_question_index'] += 1
             self.last_attempted_phase_id = self.get_next_phase_id()
             phase_state = "Success"
             self.is_last_phase_successful = True
@@ -821,15 +791,10 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         AssistantManager.assistant_id = self.assistant_id
         AssistantManager.thread_id = self.open_ai_thread_id
         manager = AssistantManager()
-        #manager.assistant_id = self.assistant_id
-
         if not self.open_ai_thread_id:    
             thread_id = manager.create_thread()
             self.open_ai_thread_id = thread_id
         
-        #manager.thread_id = self.open_ai_thread_id
-        
-        # if  self.last_attempted_phase_id <= self.last_phase_id - 1:
         if True:
             hand_intr = None
             hand_gra = None
@@ -861,8 +826,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
     def send_message(self, data, suffix=""):
         """Send message to OpenAI, and return the response"""
 
-        #self.user_response = {}
-        #self.last_attempted_phase_id = 1
         phase = self.get_phase(self.last_attempted_phase_id)
         response_metadata = {'attempted_phase_id': self.last_attempted_phase_id, 'attempted_phase_question':\
         phase['phase_question']}
@@ -872,7 +835,6 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
         res = self.handle_interaction(user_input)
         if self.user_response.get(phase_id):
             user_response = self.user_response
-            # phase_response = user_response[int(self.last_attempted_phase_id)]
             phase_response = {}
             phase_response['user_response'] = data['message']
             phase_response['ai_response'] = res[0]
@@ -885,22 +847,10 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
             phase_response['ai_response'] = res[0]
             user_response[phase_id] = phase_response
             self.user_response = user_response
-        
 
-        # thread_messages = client.beta.threads.messages.list(self.open_ai_thread_id,
-        #                                                     order='desc',
-        #                                                     limit=1)
-        # latest_message = thread_messages.data[0]
-        # run_id = latest_message.run_id
-        # runs = client.beta.threads.runs.retrieve(
-        # thread_id=self.open_ai_thread_id,
-        # run_id=run_id
-        # )
-        # completion_tokens = runs.usage.completion_tokens
         self.completion_token += 1
         attempted_phase_is_last = False
         if response_metadata['attempted_phase_id'] == int(self.last_phase_id):
-            #next_phase_id = self.last_attempted_phase_id
             attempted_phase_is_last = True
         response_metadata.update({'completion_token': self.completion_token,\
         'is_attempted_phase_successful': self.is_last_phase_successful, 'attempted_phase_is_last': attempted_phase_is_last})
