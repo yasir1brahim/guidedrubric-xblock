@@ -82,6 +82,12 @@ function GuidedRubricXBlock(runtime, element) {
                 } 
                 else if (message == "skip" && response.response[2]) {
                     keep_user_response(message, $('#last_attempted_phase_id'), response.response[0], response.response[2])
+                } else if (message == "skip" && response.response[2] == null) {
+                    $('.micro-ai-btn-container').css('display', 'none');
+                    let p = document.createElement('p');
+                    p.classList.add('notification-btm');
+                    p.textContent = response.response[5];
+                    document.querySelectorAll('.chatgpt_wrapper')[document.querySelectorAll('.chatgpt_wrapper').length - 1].appendChild(p);
                 } else {
                     type_message(response.response);
                 }
@@ -153,7 +159,6 @@ function GuidedRubricXBlock(runtime, element) {
                 alert("You should enter prompt")
                 return;
             }
-            console.log(lastChatMsg);
             // errorMsg.textContent = "";
             var chat_message = lastChatMsg.value;
             // let newMsg = document.createElement('div');
@@ -173,7 +178,6 @@ function GuidedRubricXBlock(runtime, element) {
             let aiMsgs = document.querySelectorAll('.ai-msg');
             let lastChatMsg = chatMsgs[chatMsgs.length - 1];
             let aiMsg = aiMsgs[aiMsgs.length - 1].querySelector('p');
-            console.log(aiMsg);
             // errorMsg.textContent = "";
             // let newMsg = document.createElement('div');
             // newMsg.classList.add("my-msg");
