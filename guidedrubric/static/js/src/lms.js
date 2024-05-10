@@ -367,7 +367,6 @@ function GuidedRubricXBlock(runtime, element) {
         let pElement = pElements[pElements.length - 1];
 
         // $('.recent-ai-msg p').empty();
-        text_store = pElement.textContent;
         pElement.textContent = '';
 
 
@@ -378,7 +377,7 @@ function GuidedRubricXBlock(runtime, element) {
         function displayNextChunk(index) {
             if (index < chunks.length) {
                 // Append the current chunk to the aiMsg element
-                let current_text = text_store;
+                let current_text = pElement.textContent;
                 let new_text = current_text + chunks[index];
                 pElement.textContent = new_text; 
                 
