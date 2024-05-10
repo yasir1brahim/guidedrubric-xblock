@@ -92,7 +92,7 @@ USING THE GUIDED RUBRIC XBLOCK
 2. Clone the repository into the EDX platform of CMS and LMS.
 
 
-3. Go in to the cloned folder and checkout to branch feature/guided-rubric
+3. Go in to the cloned folder and checkout to branch k-master
 
 4. Navigate back to edx-platform and Install the XBlock using pip:
 
