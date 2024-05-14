@@ -49,7 +49,6 @@ except ImportError:
 
 
 load_dotenv()
-client = openai.OpenAI(api_key=settings.FEATURES['OPENAI_SECRET_KEY'])
 model = "gpt-4-turbo-preview"
 
 ai_messages = []
@@ -108,6 +107,8 @@ class AssistantManager:
     assistant_id = None
 
     def __init__(self, model: str = model):
+        client = openai.OpenAI(api_key=settings.FEATURES['OPENAI_SECRET_KEY'])
+        print("=====================CLIENTTTTTTTTT ==================")
         self.client = client
         self.model = model
         self.assistant = None
@@ -437,6 +438,7 @@ class GuidedRubricXBlock(XBlock, CompletableXBlockMixin):
 
     @XBlock.handler
     def studio_submit(self, request, _suffix):
+        client = openai.OpenAI(api_key=settings.FEATURES['OPENAI_SECRET_KEY'])
         self.phases = json.dumps(json.loads(request.params['phases']))
         self.last_phase_id = request.params["last_phase_id"]
         self.assistant_name = request.params["assistant_name"]
